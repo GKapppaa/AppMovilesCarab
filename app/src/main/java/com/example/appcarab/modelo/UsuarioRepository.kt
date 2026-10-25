@@ -13,7 +13,7 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
     }
 
     // Valida las credenciales para el inicio de sesión
-    suspend fun login(email: String, password: String): Usuario? {
+    suspend fun validacionSesion(email: String, password: String): Usuario? {
         return usuarioDao.validarLogin(email, password)
     }
 }
