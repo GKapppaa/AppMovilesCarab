@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
+
 
 android {
     namespace = "com.example.appcarab"
@@ -39,12 +41,28 @@ android {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+
+
+    // Biblioteca principal de Room.
+    implementation("androidx.room:room-runtime:2.8.5") // Permite administrar una base de datos SQLite en Android.
+
+    // Extensiones de Room para trabajar con Kotlin.
+    implementation("androidx.room:room-ktx:2.8.5")
+    implementation(libs.material) // Proporciona integración con corrutinas
+
+    // Para generar automáticamente código adicional durante la compilación
+    ksp("androidx.room:room-compiler:2.8.5")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
