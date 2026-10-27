@@ -199,6 +199,53 @@ private fun FormularioRegistro(
 }
 
 @Composable
+private fun InicioEstudiante(
+    correo: String,
+    pdfName: String?,
+    pdfSize: Long?,
+    pdfError: String?,
+    onChoosePdf: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    AuthPage {
+        BrandLogo()
+        Spacer(Modifier.height(28.dp))
+        Text("Área de estudiante", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        Text(correo, color = EsfocarMuted)
+        Spacer(Modifier.height(24.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Material de estudio", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("Selecciona un PDF autorizado para consultarlo desde tu dispositivo.", color = EsfocarMuted)
+                OutlinedButton(onClick = onChoosePdf, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)) {
+                    Text(if (pdfName == null) "Seleccionar PDF" else "Cambiar PDF", color = EsfocarGreen)
+                }
+                pdfName?.let {
+                    Text("Documento seleccionado: $it", style = MaterialTheme.typography.bodyMedium)
+                    pdfSize?.let { size -> Text(formatSize(size), color = EsfocarMuted, style = MaterialTheme.typography.bodySmall) }
+                    Text("El archivo permanece en este dispositivo; no se envía a un servidor.", color = EsfocarMuted, style = MaterialTheme.typography.bodySmall)
+                }
+                pdfError?.let { InlineMessage(it, true) }
+            }
+        }
+        Spacer(Modifier.height(18.dp))
+        Text("Próximamente", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(6.dp))
+        Text("Aquí estarán los contenidos, trivias y autoevaluaciones disponibles para el MVP.", color = EsfocarMuted)
+        Spacer(Modifier.height(28.dp))
+        OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(14.dp)) {
+            Text("Cerrar sesión", color = EsfocarGreen)
+        }
+        FooterNote()
+    }
+}
+
+@Composable
 private fun AuthPage(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -276,6 +323,11 @@ private fun emailValido(email: String): Boolean =
 private fun passwordValida(password: String): Boolean =
     password.length >= 8 && password.any(Char::isLetter) && password.any(Char::isDigit)
 
+private fun formatSize(size: Long): String = when {
+    size < 1024 -> "$size B"
+    size < 1024 * 1024 -> "${size / 1024} KB"
+    else -> "${size / (1024 * 1024)} MB"
+}
 @Composable
 private fun LogoInstitucional() {
     Text("ESCUELA DE FORMACIÓN DE CARABINEROS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
