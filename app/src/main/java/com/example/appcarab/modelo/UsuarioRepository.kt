@@ -8,21 +8,31 @@ import kotlinx.coroutines.withContext
 
 class UsuarioRepository(private val usuarioDao: UsuarioDao) {
 
-    suspend fun registrarUsuario(email: String, password: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun registrarUsuario(nombre: String, email: String, password: String, role: String): Usuario? = withContext(Dispatchers.IO) {
         val correoNormalizado = email.trim().lowercase()
         if (usuarioDao.buscarPorEmail(correoNormalizado) != null) {
-            false
+            null
         } else {
             val salt = ByteArray(SALT_BYTES).also(SecureRandom()::nextBytes)
-            usuarioDao.insertar(
-                Usuario(
-                    email = correoNormalizado,
-                    passwordHash = hashPassword(password, salt),
-                    passwordSalt = salt.toHex(),
-                )
+            val usuario = Usuario(
+                nombre = nombre.trim(),
+                email = correoNormalizado,
+                passwordHash = hashPassword(password, salt),
+                passwordSalt = salt.toHex(),
+                role = role,
             )
-            true
+            val id = usuarioDao.insertar(usuario).toInt()
+            usuario.copy(id = id)
         }
+    }
+
+    suspend fun actualizarPerfil(usuarioId: Int, nombre: String, email: String): Usuario? = withContext(Dispatchers.IO) {
+        val correoNormalizado = email.trim().lowercase()
+        val existente = usuarioDao.buscarPorEmail(correoNormalizado)
+        if (existente != null && existente.id != usuarioId) return@withContext null
+        val old = usuarioDao.buscarPorId(usuarioId) ?: return@withContext null
+        usuarioDao.actualizarPerfil(usuarioId, nombre.trim(), correoNormalizado)
+        old.copy(nombre = nombre.trim(), email = correoNormalizado)
     }
 
     suspend fun validarSesion(email: String, password: String): Usuario? = withContext(Dispatchers.IO) {

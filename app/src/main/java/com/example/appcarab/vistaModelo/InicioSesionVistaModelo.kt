@@ -8,13 +8,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-enum class PantallaAcceso { BIENVENIDA, INICIAR_SESION, REGISTRO, INICIO }
+enum class PantallaAcceso { BIENVENIDA, INICIAR_SESION, REGISTRO, EDITAR_PERFIL, INICIO }
 
 data class EstadoAcceso(
     val pantalla: PantallaAcceso = PantallaAcceso.BIENVENIDA,
     val cargando: Boolean = false,
     val mensaje: String? = null,
     val correoUsuario: String? = null,
+    val usuarioId: Int? = null,
+    val nombreUsuario: String = "",
+    val rolUsuario: String = "ESTUDIANTE",
 )
 
 class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewModel() {
@@ -35,6 +38,9 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                         cargando = false,
                         mensaje = if (usuario == null) "Correo o contraseña incorrectos." else null,
                         correoUsuario = usuario?.email,
+                        usuarioId = usuario?.id,
+                        nombreUsuario = usuario?.nombre.orEmpty(),
+                        rolUsuario = usuario?.role ?: "ESTUDIANTE",
                     )
                 }
                 .onFailure {
@@ -43,21 +49,48 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
         }
     }
 
-    fun registrar(email: String, password: String) {
+    fun registrar(nombre: String, email: String, password: String, role: String) {
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
-            runCatching { repository.registrarUsuario(email, password) }
-                .onSuccess { registrado ->
+            runCatching { repository.registrarUsuario(nombre, email, password, role) }
+                .onSuccess { usuario ->
                     _estado.value = _estado.value.copy(
-                        pantalla = if (registrado) PantallaAcceso.INICIO else PantallaAcceso.REGISTRO,
+                        pantalla = if (usuario != null) PantallaAcceso.INICIO else PantallaAcceso.REGISTRO,
                         cargando = false,
-                        mensaje = if (registrado) null else "Ya existe una cuenta con ese correo.",
-                        correoUsuario = if (registrado) email.trim().lowercase() else null,
+                        mensaje = if (usuario != null) null else "Ya existe una cuenta con ese correo.",
+                        correoUsuario = usuario?.email,
+                        usuarioId = usuario?.id,
+                        nombreUsuario = usuario?.nombre.orEmpty(),
+                        rolUsuario = usuario?.role ?: role,
                     )
                 }
                 .onFailure {
                     _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo crear la cuenta. Intenta nuevamente.")
                 }
         }
+    }
+
+    fun guardarPerfil(nombre: String, email: String) {
+        val usuarioId = _estado.value.usuarioId ?: return
+        viewModelScope.launch {
+            _estado.value = _estado.value.copy(cargando = true, mensaje = null)
+            runCatching { repository.actualizarPerfil(usuarioId, nombre, email) }
+                .onSuccess { usuario ->
+                    _estado.value = _estado.value.copy(
+                        pantalla = if (usuario == null) PantallaAcceso.EDITAR_PERFIL else PantallaAcceso.INICIO,
+                        cargando = false,
+                        mensaje = if (usuario == null) "Ese correo ya está asociado a otra cuenta." else null,
+                        correoUsuario = usuario?.email ?: _estado.value.correoUsuario,
+                        nombreUsuario = usuario?.nombre ?: _estado.value.nombreUsuario,
+                    )
+                }
+                .onFailure {
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo guardar el perfil.")
+                }
+        }
+    }
+
+    fun cerrarSesion() {
+        _estado.value = EstadoAcceso(pantalla = PantallaAcceso.BIENVENIDA)
     }
 }
