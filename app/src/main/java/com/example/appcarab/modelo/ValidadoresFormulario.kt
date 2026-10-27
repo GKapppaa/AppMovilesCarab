@@ -1,13 +1,24 @@
 package com.example.appcarab.modelo
 
-import android.util.Patterns
-
 /** Reglas compartidas por registro, inicio de sesión y edición de perfil. */
 object ValidadoresFormulario {
-    fun nombreValido(valor: String): Boolean = valor.trim().length >= 3
-    fun correoValido(valor: String): Boolean = Patterns.EMAIL_ADDRESS.matcher(valor.trim()).matches()
+    private val palabraNombre = Regex("\\p{L}[\\p{L}\\p{M}]*(?:[-'’][\\p{L}\\p{M}]+)*")
+    private val correo = Regex("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", RegexOption.IGNORE_CASE)
+
+    fun nombreValido(valor: String): Boolean {
+        val partes = valor.trim().split(Regex("\\s+")).filter(String::isNotBlank)
+        return partes.size in 2..5 && partes.all(palabraNombre::matches)
+    }
+
+    fun correoValido(valor: String): Boolean = correo.matches(valor.trim())
+
     fun contrasenaValida(valor: String): Boolean =
-        valor.length >= 8 && valor.any(Char::isLetter) && valor.any(Char::isDigit)
+        valor.length in 8..64 &&
+            !valor.any(Char::isWhitespace) &&
+            valor.any(Char::isUpperCase) &&
+            valor.any(Char::isLowerCase) &&
+            valor.any(Char::isDigit) &&
+            valor.any { !it.isLetterOrDigit() }
 
     fun contrasenasCoinciden(contrasena: String, confirmacion: String): Boolean =
         contrasena == confirmacion

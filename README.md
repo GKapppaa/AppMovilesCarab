@@ -20,6 +20,8 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 
 Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID `EST-######` o `PROF-######`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
 
+El registro requiere entre 2 y 5 partes de nombre válidas (sin números ni símbolos ajenos a nombres) y una contraseña de 8 a 64 caracteres con mayúscula, minúscula, número y carácter especial, sin espacios.
+
 ## Arquitectura
 
 - `modelo/`: entidades Room, DAO, repositorios, validadores de dominio y lectura local de PDF.
