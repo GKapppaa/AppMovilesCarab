@@ -16,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import com.example.appcarab.R
 import com.example.appcarab.ui.theme.EsfocarGold
-import com.example.appcarab.ui.theme.EsfocarGreenDark
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
@@ -27,14 +26,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -61,75 +58,53 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(22.dp),
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
             LogoInstitucional()
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color(0xD908180F),
+                color = Color(0xFF062817),
                 shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
-                shadowElevation = 12.dp,
             ) {
-                Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Text(
-                        "ESCUELA DE FORMACIÓN · CHILE",
-                        color = EsfocarGold,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.3.sp,
-                    )
+                Column(Modifier.padding(horizontal = 22.dp, vertical = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Box(Modifier.width(46.dp).height(4.dp).background(EsfocarGold, RoundedCornerShape(50)))
                     Text(
                         "Tu formación,\na tu alcance.",
                         color = Color.White,
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        lineHeight = 43.sp,
+                        lineHeight = 36.sp,
                     )
                     Text(
-                        "Repasa, practica y fortalece tu preparación desde cualquier lugar.",
-                        color = Color.White,
+                        "Estudia, repasa y organiza tu material de formación desde un solo lugar.",
+                        color = Color(0xFFE6EEE8),
                         style = MaterialTheme.typography.bodyLarge,
-                        lineHeight = 25.sp,
+                        lineHeight = 24.sp,
                     )
-                    Box(
-                        Modifier
-                            .padding(top = 4.dp)
-                            .width(54.dp)
-                            .height(4.dp)
-                            .background(EsfocarGold, RoundedCornerShape(50)),
-                    )
+                    Spacer(Modifier.height(4.dp))
+                    Button(
+                        onClick = onRegister,
+                        modifier = Modifier.fillMaxWidth().height(54.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = EsfocarGold,
+                            contentColor = Color(0xFF17251B),
+                        ),
+                    ) {
+                        Text("Comenzar   →", fontWeight = FontWeight.Bold)
+                    }
+                    OutlinedButton(
+                        onClick = onLogin,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.58f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    ) {
+                        Text("Ya tengo cuenta", fontWeight = FontWeight.SemiBold)
+                    }
                 }
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onLogin,
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = EsfocarGreenDark),
-                ) {
-                    Text("Iniciar sesión", fontWeight = FontWeight.SemiBold)
-                }
-                OutlinedButton(
-                    onClick = onRegister,
-                    modifier = Modifier.fillMaxWidth().height(54.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.8f)),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                ) {
-                    Text("Crear cuenta", fontWeight = FontWeight.SemiBold)
-                }
-                Text(
-                    "MATERIAL DE APOYO PARA TU FORMACIÓN",
-                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                    color = Color.White.copy(alpha = 0.74f),
-                    style = MaterialTheme.typography.labelSmall,
-                    letterSpacing = 1.sp,
-                )
             }
         }
     }
