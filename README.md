@@ -11,6 +11,24 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 - Daniel Pinto
 - Hernán García
 
+## Instalación y ejecución
+
+1. Clonar el repositorio y abrir la carpeta raíz en Android Studio.
+2. Usar JDK 17 y sincronizar Gradle.
+3. Ejecutar `app` en un emulador Android o dispositivo físico.
+4. Para compilar desde terminal: `./gradlew assembleDebug`; para las pruebas: `./gradlew testDebugUnitTest`.
+
+Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID `EST-######` o `PROF-######`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
+
+El registro requiere entre 2 y 5 partes de nombre válidas (sin números ni símbolos ajenos a nombres) y una contraseña de 8 a 64 caracteres con mayúscula, minúscula, número y carácter especial, sin espacios.
+
+## Arquitectura
+
+- `modelo/`: entidades Room, DAO, repositorios, validadores de dominio y lectura local de PDF.
+- `vistaModelo/`: estado observable con `StateFlow` y lógica de acceso/documentos.
+- `vista/`: `AccesoApp` coordina la navegación; `BienvenidaScreen`, `FormulariosAcceso`, `InicioEstudianteScreen` y `ComponentesAcceso` separan pantallas y componentes Compose con Material Design 3.
+- Room/SQLite conserva perfiles y documentos; los PDF se guardan en el directorio privado de la app.
+
 ## Alcance de trabajo actual
 
 En esta etapa trabajaremos en el flujo de acceso y en la carga de material del estudiante:
@@ -21,6 +39,14 @@ En esta etapa trabajaremos en el flujo de acceso y en la carga de material del e
 - Validaciones para textos y correos electrónicos.
 - Validación de imágenes seleccionadas o cargadas, cuando corresponda al flujo definido.
 - Espacio para que el estudiante pueda seleccionar y subir un archivo PDF.
+- Perfiles de prueba de estudiante y profesor, con edición de nombre y correo.
+- Biblioteca local de documentos PDF para listar, abrir, resumir y eliminar archivos.
+- Escaneo de una hoja con la cámara del dispositivo y conversión local de la captura a PDF.
+- Organización de documentos por categorías locales: General, Clases, Normativa, Tareas y Escaneos.
+- Perfiles de profesor: agregar estudiantes por su ID, enviar mensajes, compartir documentos propios y asignar tareas individuales.
+- Perfiles de estudiante: consultar los mensajes, materiales compartidos y tareas asignadas por su profesor.
+
+Las relaciones de aula, mensajes, tareas y material compartido se guardan localmente en Room para la demostración; no se sincronizan entre dispositivos ni consultan sistemas institucionales.
 
 La validación de usuario del MVP debe operar con datos de prueba; no debe consultar ni verificar cuentas en sistemas reales de ESFOCAR o Duoc UC.
 
@@ -77,7 +103,20 @@ La validación de usuario del MVP debe operar con datos de prueba; no debe consu
 - No utilizar datos reales de estudiantes ni conectar con sistemas institucionales productivos.
 - El material académico y los casos utilizados deben ser ficticios, sintéticos o estar depurados y autorizados para uso académico.
 - El MVP no representa una aplicación productiva ni definitiva para la institución.
+- Los documentos se guardan en el almacenamiento privado del dispositivo. El resumen es extractivo, se calcula sin conexión sobre texto seleccionable de las primeras páginas y no incluye OCR para PDFs escaneados.
 
 ## Identidad visual
 
-Usar como referencia la identidad institucional mostrada en el material del caso de **Duoc UC · Escuela de Informática y Telecomunicaciones · CITT**. Mantener una paleta basada en los tonos azules institucionales visibles en ese material. Incorporar un archivo de logo oficial únicamente cuando el equipo disponga de un recurso autorizado; no recrear ni inventar el logo.
+Usar el logo oficial de ESFOCAR y su paleta verde y dorada como identidad principal de la aplicación. La paleta azul del formato académico Duoc UC corresponde al documento del curso, no a la identidad de Carabineros. No recrear ni alterar el logo.
+
+## Fotografías de bienvenida
+
+Las fotografías del fondo animado se empaquetan en formato WebP para que la bienvenida funcione sin conexión. Fuentes consultadas:
+
+- [El Ovallino: reconocimiento al cuerpo docente de ESFOCAR Grupo Ovalle](https://www.elovallino.cl/articulo/esfocar-grupo-ovalle-reconoce-labor-su-cuerpo-docente/)
+- [Dirección de Educación, Doctrina e Historia: Escuela de Formación](https://decarcarabineros.cl/sitio/estate/7)
+- [Fotografía publicada en Blogger](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjCD95PqeHjBdhAIJGFUkIhzzbw9HDGcsmIC76-m_XVA-iAXJGySpDTQ2GFyKJ0dPcBCBqdG1ZOW7AMIhULpXB6x2nYMMBdgz27grcFnID__B6IKI_J0gGQsnRf2J_z3QA5NUg1DtZ0DU3IUSi2rR8dF08Yj-L6FFD6mbSZmLZ4gRibt_h4zqymA_Y/s1600/3%204.jpg)
+- [Comité para la Prevención de la Tortura: visita a ESFOCAR](https://mnpt.cl/2025/10/29/visita-preventiva-del-cpt-a-la-escuela-de-formacion-de-carabineros-esfocar/)
+- [Sitio oficial de ESFOCAR](https://siga.esfocar.carabineros.cl/es) (imagen de portada)
+
+La URL de Instagram compartida corresponde al perfil, no a una publicación de imagen; por eso no se usó su foto de perfil como fondo.
