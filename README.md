@@ -23,7 +23,7 @@ Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles 
 
 - `modelo/`: entidades Room, DAO, repositorios, validadores de dominio y lectura local de PDF.
 - `vistaModelo/`: estado observable con `StateFlow` y lógica de acceso/documentos.
-- `vista/`: pantallas y componentes Jetpack Compose con Material Design 3.
+- `vista/`: `AccesoApp` coordina la navegación; `BienvenidaScreen`, `FormulariosAcceso`, `InicioEstudianteScreen` y `ComponentesAcceso` separan pantallas y componentes Compose con Material Design 3.
 - Room/SQLite conserva perfiles y documentos; los PDF se guardan en el directorio privado de la app.
 
 ## Alcance de trabajo actual
