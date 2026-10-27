@@ -1,6 +1,16 @@
 package com.example.appcarab.vista
 
-import androidx.compose.foundation.Image
+import android.content.Intent
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
+import com.example.appcarab.vistaModelo.PantallaAcceso
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +54,75 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+
+@Composable
+fun AccesoApp(viewModel: InicioSesionVistaModelo) {
+    val estado by viewModel.estado.collectAsState()
+    val context = LocalContext.current
+    var pdfName by rememberSaveable { mutableStateOf<String?>(null) }
+    var pdfSize by rememberSaveable { mutableStateOf<Long?>(null) }
+    var pdfError by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val pdfPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val mimeType = context.contentResolver.getType(uri)
+        val details = context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                (if (nameIndex >= 0) cursor.getString(nameIndex) else null) to
+                    (if (sizeIndex >= 0) cursor.getLong(sizeIndex) else null)
+            } else null
+        }
+        val name = details?.first.orEmpty()
+        if (mimeType == "application/pdf" || name.endsWith(".pdf", ignoreCase = true)) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            pdfName = name.ifBlank { "Documento PDF" }
+            pdfSize = details?.second
+            pdfError = null
+        } else {
+            pdfError = "Selecciona un archivo PDF válido."
+        }
+    }
+
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        when (estado.pantalla) {
+            PantallaAcceso.BIENVENIDA -> Bienvenida(
+                onLogin = { viewModel.irA(PantallaAcceso.INICIAR_SESION) },
+                onRegister = { viewModel.irA(PantallaAcceso.REGISTRO) },
+            )
+            PantallaAcceso.INICIAR_SESION -> FormularioSesion(
+                mensaje = estado.mensaje,
+                cargando = estado.cargando,
+                onBack = { viewModel.irA(PantallaAcceso.BIENVENIDA) },
+                onRegister = { viewModel.irA(PantallaAcceso.REGISTRO) },
+                onSubmit = viewModel::iniciarSesion,
+            )
+            PantallaAcceso.REGISTRO -> FormularioRegistro(
+                mensaje = estado.mensaje,
+                cargando = estado.cargando,
+                onBack = { viewModel.irA(PantallaAcceso.BIENVENIDA) },
+                onLogin = { viewModel.irA(PantallaAcceso.INICIAR_SESION) },
+                onSubmit = viewModel::registrar,
+            )
+            PantallaAcceso.INICIO -> InicioEstudiante(
+                correo = estado.correoUsuario.orEmpty(),
+                pdfName = pdfName,
+                pdfSize = pdfSize,
+                pdfError = pdfError,
+                onChoosePdf = { pdfPicker.launch(arrayOf("application/pdf")) },
+                onLogout = {
+                    pdfName = null
+                    pdfSize = null
+                    pdfError = null
+                    viewModel.irA(PantallaAcceso.BIENVENIDA)
+                },
+            )
+        }
+    }
+}
 
 @Composable
 private fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
