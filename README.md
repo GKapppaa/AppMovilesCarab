@@ -11,6 +11,22 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 - Daniel Pinto
 - Hernán García
 
+## Instalación y ejecución
+
+1. Clonar el repositorio y abrir la carpeta raíz en Android Studio.
+2. Usar JDK 17 y sincronizar Gradle.
+3. Ejecutar `app` en un emulador Android o dispositivo físico.
+4. Para compilar desde terminal: `./gradlew assembleDebug`; para las pruebas: `./gradlew testDebugUnitTest`.
+
+Las cuentas y códigos de esta versión son de demostración. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
+
+## Arquitectura
+
+- `modelo/`: entidades Room, DAO, repositorios, validadores de dominio y lectura local de PDF.
+- `vistaModelo/`: estado observable con `StateFlow` y lógica de acceso/documentos.
+- `vista/`: pantallas y componentes Jetpack Compose con Material Design 3.
+- Room/SQLite conserva perfiles y documentos; los PDF se guardan en el directorio privado de la app.
+
 ## Alcance de trabajo actual
 
 En esta etapa trabajaremos en el flujo de acceso y en la carga de material del estudiante:
