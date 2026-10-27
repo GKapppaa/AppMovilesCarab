@@ -19,6 +19,8 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 
 Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID `EST-######` o `PROF-######`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
 
+El registro requiere entre 2 y 5 partes de nombre válidas (sin números ni símbolos ajenos a nombres) y una contraseña de 8 a 64 caracteres con mayúscula, minúscula, número y carácter especial, sin espacios.
+
 ## Arquitectura
 
 - `modelo/`: entidades Room, DAO, repositorios, validadores de dominio y lectura local de PDF.
@@ -40,6 +42,10 @@ En esta etapa trabajaremos en el flujo de acceso y en la carga de material del e
 - Biblioteca local de documentos PDF para listar, abrir, resumir y eliminar archivos.
 - Escaneo de una hoja con la cámara del dispositivo y conversión local de la captura a PDF.
 - Organización de documentos por categorías locales: General, Clases, Normativa, Tareas y Escaneos.
+- Perfiles de profesor: agregar estudiantes por su ID, enviar mensajes, compartir documentos propios y asignar tareas individuales.
+- Perfiles de estudiante: consultar los mensajes, materiales compartidos y tareas asignadas por su profesor.
+
+Las relaciones de aula, mensajes, tareas y material compartido se guardan localmente en Room para la demostración; no se sincronizan entre dispositivos ni consultan sistemas institucionales.
 
 La validación de usuario del MVP debe operar con datos de prueba; no debe consultar ni verificar cuentas en sistemas reales de ESFOCAR o Duoc UC.
 

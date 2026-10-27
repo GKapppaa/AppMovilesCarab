@@ -20,11 +20,14 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.PantallaAcceso
+import com.example.appcarab.vistaModelo.AulaVistaModelo
+import com.example.appcarab.vistaModelo.EstadoAula
 
 @Composable
-fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: DocumentosVistaModelo) {
+fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: DocumentosVistaModelo, aulaViewModel: AulaVistaModelo) {
     val estado by viewModel.estado.collectAsState()
     val estadoDocumentos by documentosViewModel.estado.collectAsState()
+    val estadoAula by aulaViewModel.estado.collectAsState()
     val context = LocalContext.current
     var uriEscaneo by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -38,6 +41,9 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
         if (guardado && uri != null && usuarioId != null) documentosViewModel.agregarEscaneo(usuarioId, uri)
     }
     LaunchedEffect(estado.usuarioId) { estado.usuarioId?.let(documentosViewModel::observar) }
+    LaunchedEffect(estado.usuarioId, estado.rolUsuario) {
+        estado.usuarioId?.let { aulaViewModel.observar(it, estado.rolUsuario) }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (estado.pantalla) {
@@ -72,6 +78,7 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
                 codigoPerfil = estado.codigoPerfil,
                 correo = estado.correoUsuario.orEmpty(),
                 rol = estado.rolUsuario,
+                estadoAula = estadoAula,
                 documentos = estadoDocumentos.documentos,
                 documentosCargando = estadoDocumentos.cargando,
                 documentosMensaje = estadoDocumentos.mensaje,
@@ -100,6 +107,10 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
                             .onFailure { Toast.makeText(context, "No hay una aplicación disponible para abrir PDF.", Toast.LENGTH_LONG).show() }
                     }
                 },
+                onAddStudent = { codigo -> estado.usuarioId?.let { aulaViewModel.agregarAlumno(it, codigo) } },
+                onSendMessage = { codigo, texto -> estado.usuarioId?.let { aulaViewModel.enviarMensaje(it, codigo, texto) } },
+                onShareMaterial = { codigo, documentoId -> estado.usuarioId?.let { aulaViewModel.compartirMaterial(it, codigo, documentoId) } },
+                onAssignTask = { codigo, titulo, descripcion -> estado.usuarioId?.let { aulaViewModel.asignarTarea(it, codigo, titulo, descripcion) } },
                 onEditProfile = { viewModel.irA(PantallaAcceso.EDITAR_PERFIL) },
                 onLogout = viewModel::cerrarSesion,
             )

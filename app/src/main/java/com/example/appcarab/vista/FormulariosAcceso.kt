@@ -119,10 +119,10 @@ internal fun FormularioRegistro(
             value = nombre,
             onValueChange = { nombre = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Nombre de perfil (usa un dato de prueba)") },
+            label = { Text("Nombre y apellido (usa datos de prueba)") },
             singleLine = true,
             isError = nombreError,
-            supportingText = if (nombreError) ({ ValidationHint("Ingresa al menos 3 caracteres.") }) else null,
+            supportingText = if (nombreError) ({ ValidationHint("Usa 2 a 5 nombres; solo letras, tildes, espacios o guiones.") }) else null,
         )
         Spacer(Modifier.height(16.dp))
         Text("Tipo de perfil", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
@@ -163,7 +163,7 @@ internal fun FormularioRegistro(
         )
         Spacer(Modifier.height(10.dp))
         PasswordField(password, { password = it }, passwordError, "Contraseña")
-        if (passwordError) ValidationHint("Usa 8 caracteres como mínimo, con letras y números.")
+        if (passwordError) ValidationHint("Usa 8–64 caracteres e incluye mayúscula, minúscula, número y símbolo; sin espacios.")
         Spacer(Modifier.height(10.dp))
         PasswordField(confirmation, { confirmation = it }, confirmationError, "Confirmar contraseña")
         if (confirmationError) ValidationHint("Las contraseñas no coinciden.")
@@ -216,10 +216,10 @@ internal fun FormularioPerfil(
             value = nombre,
             onValueChange = { nombre = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Nombre de perfil") },
+            label = { Text("Nombre y apellido") },
             singleLine = true,
             isError = nombreError,
-            supportingText = if (nombreError) ({ ValidationHint("Ingresa al menos 3 caracteres.") }) else null,
+            supportingText = if (nombreError) ({ ValidationHint("Usa 2 a 5 nombres; solo letras, tildes, espacios o guiones.") }) else null,
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
