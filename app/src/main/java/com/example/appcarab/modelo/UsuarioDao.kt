@@ -17,4 +17,10 @@ interface UsuarioDao {
 
     @Query("SELECT * FROM usuario WHERE email = :email LIMIT 1")
     suspend fun buscarPorEmail(email: String): Usuario?
+
+    @Query("SELECT * FROM usuario WHERE id = :usuarioId LIMIT 1")
+    suspend fun buscarPorId(usuarioId: Int): Usuario?
+
+    @Query("UPDATE usuario SET nombre = :nombre, email = :email WHERE id = :usuarioId")
+    suspend fun actualizarPerfil(usuarioId: Int, nombre: String, email: String): Int
 }
