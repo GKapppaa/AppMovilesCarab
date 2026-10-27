@@ -2,20 +2,25 @@ package com.example.appcarab.modelo
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface UsuarioDao {
 
-    // Inserta una persona en la tabla.
-    @Insert
-    suspend fun insertar(usuario: Usuario)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertar(usuario: Usuario): Long
 
-    // Recupera todas las personas.
-    @Query("SELECT * FROM usuario")
-    suspend fun listar(): List<Usuario>
+    @Update
+    suspend fun actualizar(usuario: Usuario)
 
-    // Función clave para validar el inicio de sesión para el login
-    @Query("SELECT * FROM usuario WHERE email = :email AND password = :password LIMIT 1")
-    suspend fun validarLogin(email: String, password: String): Usuario?
+    @Query("SELECT * FROM usuario WHERE email = :email LIMIT 1")
+    suspend fun buscarPorEmail(email: String): Usuario?
+
+    @Query("SELECT * FROM usuario WHERE id = :usuarioId LIMIT 1")
+    suspend fun buscarPorId(usuarioId: Int): Usuario?
+
+    @Query("UPDATE usuario SET nombre = :nombre, email = :email WHERE id = :usuarioId")
+    suspend fun actualizarPerfil(usuarioId: Int, nombre: String, email: String): Int
 }
