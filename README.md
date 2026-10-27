@@ -8,7 +8,8 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 
 ## Integrantes
 
-- Gustavo Oporto
+- Daniel Pinto
+- Hernán García
 
 ## Alcance de trabajo actual
 
