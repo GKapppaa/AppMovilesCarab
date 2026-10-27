@@ -17,7 +17,7 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 3. Ejecutar `app` en un emulador Android o dispositivo físico.
 4. Para compilar desde terminal: `./gradlew assembleDebug`; para las pruebas: `./gradlew testDebugUnitTest`.
 
-Las cuentas y códigos de esta versión son de demostración. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
+Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID `EST-######` o `PROF-######`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
 
 ## Arquitectura
 
@@ -38,6 +38,8 @@ En esta etapa trabajaremos en el flujo de acceso y en la carga de material del e
 - Espacio para que el estudiante pueda seleccionar y subir un archivo PDF.
 - Perfiles de prueba de estudiante y profesor, con edición de nombre y correo.
 - Biblioteca local de documentos PDF para listar, abrir, resumir y eliminar archivos.
+- Escaneo de una hoja con la cámara del dispositivo y conversión local de la captura a PDF.
+- Organización de documentos por categorías locales: General, Clases, Normativa, Tareas y Escaneos.
 
 La validación de usuario del MVP debe operar con datos de prueba; no debe consultar ni verificar cuentas en sistemas reales de ESFOCAR o Duoc UC.
 

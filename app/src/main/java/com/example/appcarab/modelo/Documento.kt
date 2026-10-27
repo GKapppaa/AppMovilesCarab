@@ -1,6 +1,7 @@
 package com.example.appcarab.modelo
 
 import androidx.room.Entity
+import androidx.room.ColumnInfo
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -23,5 +24,6 @@ data class Documento(
     val nombre: String,
     val archivoInterno: String,
     val resumen: String,
+    @ColumnInfo(defaultValue = "'General'") val categoria: String = "General",
     val creadoEn: Long = System.currentTimeMillis(),
 )
