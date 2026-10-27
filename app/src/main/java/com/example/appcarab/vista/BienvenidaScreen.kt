@@ -70,8 +70,8 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
                     .background(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
-                            0.16f to Color(0xB300160A),
-                            1f to Color(0xF2001008),
+                            0.16f to Color(0x6600160A),
+                            1f to Color(0xAA001008),
                         ),
                     )
                     .padding(horizontal = 24.dp, vertical = 24.dp),
@@ -168,17 +168,7 @@ private fun FondoFotograficoAnimado() {
                 },
             )
         }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color(0x220D1A12),
-                        0.48f to Color(0x1A101D14),
-                        0.76f to Color(0xB3001008),
-                        1f to Color(0xF2001008),
-                    ),
-                ),
-        )
+        // Tinte uniforme: mantiene legibles las fotos y evita que el borde inferior parezca un footer aparte.
+        Box(Modifier.fillMaxSize().background(Color(0x30001008)))
     }
 }
