@@ -8,9 +8,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.PantallaAcceso
+import com.example.appcarab.R
+import com.example.appcarab.ui.theme.EsfocarGold
+import com.example.appcarab.ui.theme.EsfocarGreen
+import com.example.appcarab.ui.theme.EsfocarMuted
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -128,7 +134,7 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo) {
 private fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
     AuthPage {
         Spacer(Modifier.height(18.dp))
-        BrandLogo()
+        LogoInstitucional()
         Spacer(Modifier.height(38.dp))
         Text("ESFOCAR", color = EsfocarGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
         Spacer(Modifier.height(8.dp))
@@ -180,7 +186,7 @@ private fun FormularioSesion(
 
     AuthPage {
         TextButton(onClick = onBack) { Text("‹  Volver", color = EsfocarGreen) }
-        BrandLogo()
+        LogoInstitucional()
         Spacer(Modifier.height(30.dp))
         Text("Bienvenido", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
@@ -236,7 +242,7 @@ private fun FormularioRegistro(
 
     AuthPage {
         TextButton(onClick = onBack) { Text("‹  Volver", color = EsfocarGreen) }
-        BrandLogo()
+        LogoInstitucional()
         Spacer(Modifier.height(26.dp))
         Text("Crear cuenta", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
@@ -287,7 +293,7 @@ private fun InicioEstudiante(
     onLogout: () -> Unit,
 ) {
     AuthPage {
-        BrandLogo()
+        LogoInstitucional()
         Spacer(Modifier.height(28.dp))
         Text("Área de estudiante", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
@@ -409,6 +415,10 @@ private fun formatSize(size: Long): String = when {
 }
 @Composable
 private fun LogoInstitucional() {
-    Text("ESCUELA DE FORMACIÓN DE CARABINEROS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+    Image(
+        painter = painterResource(R.drawable.logo_esfocar),
+        contentDescription = "Logo oficial de la Escuela de Formación de Carabineros de Chile",
+        modifier = Modifier.fillMaxWidth().height(76.dp),
+    )
 }
 
