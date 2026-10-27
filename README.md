@@ -81,3 +81,15 @@ La validación de usuario del MVP debe operar con datos de prueba; no debe consu
 ## Identidad visual
 
 Usar como referencia la identidad institucional mostrada en el material del caso de **Duoc UC · Escuela de Informática y Telecomunicaciones · CITT**. Mantener una paleta basada en los tonos azules institucionales visibles en ese material. Incorporar un archivo de logo oficial únicamente cuando el equipo disponga de un recurso autorizado; no recrear ni inventar el logo.
+
+## Fotografías de bienvenida
+
+Las fotografías del fondo animado se empaquetan en formato WebP para que la bienvenida funcione sin conexión. Fuentes consultadas:
+
+- [El Ovallino: reconocimiento al cuerpo docente de ESFOCAR Grupo Ovalle](https://www.elovallino.cl/articulo/esfocar-grupo-ovalle-reconoce-labor-su-cuerpo-docente/)
+- [Dirección de Educación, Doctrina e Historia: Escuela de Formación](https://decarcarabineros.cl/sitio/estate/7)
+- [Fotografía publicada en Blogger](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgjCD95PqeHjBdhAIJGFUkIhzzbw9HDGcsmIC76-m_XVA-iAXJGySpDTQ2GFyKJ0dPcBCBqdG1ZOW7AMIhULpXB6x2nYMMBdgz27grcFnID__B6IKI_J0gGQsnRf2J_z3QA5NUg1DtZ0DU3IUSi2rR8dF08Yj-L6FFD6mbSZmLZ4gRibt_h4zqymA_Y/s1600/3%204.jpg)
+- [Comité para la Prevención de la Tortura: visita a ESFOCAR](https://mnpt.cl/2025/10/29/visita-preventiva-del-cpt-a-la-escuela-de-formacion-de-carabineros-esfocar/)
+- [Sitio oficial de ESFOCAR](https://siga.esfocar.carabineros.cl/es) (imagen de portada)
+
+La URL de Instagram compartida corresponde al perfil, no a una publicación de imagen; por eso no se usó su foto de perfil como fondo.
