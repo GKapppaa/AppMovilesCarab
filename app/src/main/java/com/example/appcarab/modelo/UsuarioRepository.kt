@@ -22,7 +22,10 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
                 role = role,
             )
             val id = usuarioDao.insertar(usuario).toInt()
-            usuario.copy(id = id)
+            val prefijo = if (role == "PROFESOR") "PROF" else "EST"
+            val creado = usuario.copy(id = id, codigoPerfil = "$prefijo-${id.toString().padStart(6, '0')}")
+            usuarioDao.actualizar(creado)
+            creado
         }
     }
 

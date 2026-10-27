@@ -25,6 +25,7 @@ import com.example.appcarab.vistaModelo.PantallaAcceso
 import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
+import com.example.appcarab.modelo.ValidadoresFormulario
 import com.example.appcarab.ui.theme.EsfocarGold
 import com.example.appcarab.ui.theme.EsfocarGreen
 import com.example.appcarab.ui.theme.EsfocarGreenDark
@@ -44,6 +45,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
@@ -57,6 +59,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -125,6 +130,7 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
             )
             PantallaAcceso.INICIO -> InicioEstudiante(
                 nombre = estado.nombreUsuario,
+                codigoPerfil = estado.codigoPerfil,
                 correo = estado.correoUsuario.orEmpty(),
                 rol = estado.rolUsuario,
                 documentos = estadoDocumentos.documentos,
@@ -315,7 +321,7 @@ private fun FormularioSesion(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var enviado by rememberSaveable { mutableStateOf(false) }
-    val emailError = enviado && !emailValido(email)
+    val emailError = enviado && !ValidadoresFormulario.correoValido(email)
     val passwordError = enviado && password.isBlank()
 
     AuthPage {
@@ -333,18 +339,18 @@ private fun FormularioSesion(
             label = { Text("Correo electrónico") },
             singleLine = true,
             isError = emailError,
-            supportingText = if (emailError) ({ Text("Ingresa un correo válido.") }) else null,
+            supportingText = if (emailError) ({ ValidationHint("Ingresa un correo válido.") }) else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         )
         Spacer(Modifier.height(12.dp))
         PasswordField(password, { password = it }, passwordError, "Contraseña")
-        if (passwordError) Text("Ingresa tu contraseña.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        if (passwordError) ValidationHint("Ingresa tu contraseña.")
         mensaje?.let { InlineMessage(it, true) }
         Spacer(Modifier.height(20.dp))
         Button(
             onClick = {
                 enviado = true
-                if (emailValido(email) && password.isNotBlank()) onSubmit(email, password)
+                if (ValidadoresFormulario.correoValido(email) && password.isNotBlank()) onSubmit(email, password)
             },
             enabled = !cargando,
             modifier = Modifier.fillMaxWidth().height(54.dp),
@@ -363,18 +369,19 @@ private fun FormularioRegistro(
     cargando: Boolean,
     onBack: () -> Unit,
     onLogin: () -> Unit,
-    onSubmit: (String, String, String, String) -> Unit,
+    onSubmit: (String, String, String, String, String) -> Unit,
 ) {
     var nombre by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmation by rememberSaveable { mutableStateOf("") }
     var rol by rememberSaveable { mutableStateOf("ESTUDIANTE") }
+    var codigoProfesor by rememberSaveable { mutableStateOf("") }
     var enviado by rememberSaveable { mutableStateOf(false) }
-    val nombreError = enviado && nombre.trim().length < 3
-    val emailError = enviado && !emailValido(email)
-    val passwordError = enviado && !passwordValida(password)
-    val confirmationError = enviado && password != confirmation
+    val nombreError = enviado && !ValidadoresFormulario.nombreValido(nombre)
+    val emailError = enviado && !ValidadoresFormulario.correoValido(email)
+    val passwordError = enviado && !ValidadoresFormulario.contrasenaValida(password)
+    val confirmationError = enviado && !ValidadoresFormulario.contrasenasCoinciden(password, confirmation)
 
     AuthPage {
         TextButton(onClick = onBack) { Text("‹  Volver", color = EsfocarGreen) }
@@ -391,7 +398,7 @@ private fun FormularioRegistro(
             label = { Text("Nombre de perfil (usa un dato de prueba)") },
             singleLine = true,
             isError = nombreError,
-            supportingText = if (nombreError) ({ Text("Ingresa al menos 3 caracteres.") }) else null,
+            supportingText = if (nombreError) ({ ValidationHint("Ingresa al menos 3 caracteres.") }) else null,
         )
         Spacer(Modifier.height(16.dp))
         Text("Tipo de perfil", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
@@ -407,6 +414,19 @@ private fun FormularioRegistro(
                 label = { Text("Profesor") },
             )
         }
+        if (rol == "PROFESOR") {
+            OutlinedTextField(
+                value = codigoProfesor,
+                onValueChange = { codigoProfesor = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Código de invitación docente") },
+                singleLine = true,
+                isError = enviado && !ValidadoresFormulario.codigoProfesorValido(codigoProfesor),
+                supportingText = if (enviado && !ValidadoresFormulario.codigoProfesorValido(codigoProfesor)) {
+                    ({ ValidationHint("Ingresa el código de invitación entregado por el equipo docente.") })
+                } else null,
+            )
+        }
         OutlinedTextField(
             value = email,
             onValueChange = { email = it.trimStart() },
@@ -414,22 +434,25 @@ private fun FormularioRegistro(
             label = { Text("Correo electrónico") },
             singleLine = true,
             isError = emailError,
-            supportingText = if (emailError) ({ Text("Ingresa un correo válido.") }) else null,
+            supportingText = if (emailError) ({ ValidationHint("Ingresa un correo válido.") }) else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         )
         Spacer(Modifier.height(10.dp))
         PasswordField(password, { password = it }, passwordError, "Contraseña")
-        if (passwordError) Text("Usa al menos 8 caracteres, con letras y números.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        if (passwordError) ValidationHint("Usa 8 caracteres como mínimo, con letras y números.")
         Spacer(Modifier.height(10.dp))
         PasswordField(confirmation, { confirmation = it }, confirmationError, "Confirmar contraseña")
-        if (confirmationError) Text("Las contraseñas no coinciden.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        if (confirmationError) ValidationHint("Las contraseñas no coinciden.")
         mensaje?.let { InlineMessage(it, true) }
         Spacer(Modifier.height(20.dp))
         Button(
             onClick = {
                 enviado = true
-                if (nombre.trim().length >= 3 && emailValido(email) && passwordValida(password) && password == confirmation) {
-                    onSubmit(nombre, email, password, rol)
+                if (ValidadoresFormulario.nombreValido(nombre) && ValidadoresFormulario.correoValido(email) &&
+                    ValidadoresFormulario.contrasenaValida(password) &&
+                    ValidadoresFormulario.contrasenasCoinciden(password, confirmation)
+                ) {
+                    onSubmit(nombre, email, password, rol, codigoProfesor)
                 }
             },
             enabled = !cargando,
@@ -455,8 +478,8 @@ private fun FormularioPerfil(
     var nombre by rememberSaveable(nombreActual) { mutableStateOf(nombreActual) }
     var email by rememberSaveable(correoActual) { mutableStateOf(correoActual) }
     var enviado by rememberSaveable { mutableStateOf(false) }
-    val nombreError = enviado && nombre.trim().length < 3
-    val emailError = enviado && !emailValido(email)
+    val nombreError = enviado && !ValidadoresFormulario.nombreValido(nombre)
+    val emailError = enviado && !ValidadoresFormulario.correoValido(email)
 
     AuthPage {
         TextButton(onClick = onBack) { Text("‹  Volver", color = EsfocarGreen) }
@@ -472,7 +495,7 @@ private fun FormularioPerfil(
             label = { Text("Nombre de perfil") },
             singleLine = true,
             isError = nombreError,
-            supportingText = if (nombreError) ({ Text("Ingresa al menos 3 caracteres.") }) else null,
+            supportingText = if (nombreError) ({ ValidationHint("Ingresa al menos 3 caracteres.") }) else null,
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
@@ -482,7 +505,7 @@ private fun FormularioPerfil(
             label = { Text("Correo electrónico") },
             singleLine = true,
             isError = emailError,
-            supportingText = if (emailError) ({ Text("Ingresa un correo válido.") }) else null,
+            supportingText = if (emailError) ({ ValidationHint("Ingresa un correo válido.") }) else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         )
         mensaje?.let { InlineMessage(it, true) }
@@ -490,7 +513,7 @@ private fun FormularioPerfil(
         Button(
             onClick = {
                 enviado = true
-                if (!nombreError && !emailError) onSubmit(nombre, email)
+                if (ValidadoresFormulario.nombreValido(nombre) && ValidadoresFormulario.correoValido(email)) onSubmit(nombre, email)
             },
             enabled = !cargando,
             modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -501,6 +524,7 @@ private fun FormularioPerfil(
 @Composable
 private fun InicioEstudiante(
     nombre: String,
+    codigoPerfil: String,
     correo: String,
     rol: String,
     documentos: List<Documento>,
@@ -521,6 +545,7 @@ private fun InicioEstudiante(
         Spacer(Modifier.height(24.dp))
         Text("Hola, $nombre", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(if (rol == "PROFESOR") "Perfil de profesor" else "Perfil de estudiante", color = EsfocarMuted)
+        Text("ID de perfil: $codigoPerfil", color = EsfocarGreen, style = MaterialTheme.typography.labelLarge)
         Text(correo, color = EsfocarMuted, style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(12.dp))
         OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth().height(48.dp)) {
@@ -657,11 +682,18 @@ private fun InlineMessage(message: String, isError: Boolean) {
     )
 }
 
-private fun emailValido(email: String): Boolean =
-    android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
-
-private fun passwordValida(password: String): Boolean =
-    password.length >= 8 && password.any(Char::isLetter) && password.any(Char::isDigit)
+@Composable
+private fun ValidationHint(message: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Icon(
+            imageVector = Icons.Outlined.ErrorOutline,
+            contentDescription = "Error de validación",
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+    }
+}
 
 @Composable
 private fun LogoInstitucional() {

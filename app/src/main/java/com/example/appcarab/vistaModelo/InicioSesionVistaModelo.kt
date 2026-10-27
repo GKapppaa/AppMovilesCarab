@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appcarab.modelo.UsuarioRepository
+import com.example.appcarab.modelo.ValidadoresFormulario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +19,7 @@ data class EstadoAcceso(
     val correoUsuario: String? = null,
     val usuarioId: Int? = null,
     val nombreUsuario: String = "",
+    val codigoPerfil: String = "",
     val rolUsuario: String = "ESTUDIANTE",
 )
 
@@ -30,6 +32,10 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
     }
 
     fun iniciarSesion(email: String, password: String) {
+        if (!ValidadoresFormulario.correoValido(email) || password.isBlank()) {
+            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.INICIAR_SESION, mensaje = "Revisa el correo y la contraseña.")
+            return
+        }
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
             runCatching { repository.validarSesion(email, password) }
@@ -41,6 +47,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                         correoUsuario = usuario?.email,
                         usuarioId = usuario?.id,
                         nombreUsuario = usuario?.nombre.orEmpty(),
+                        codigoPerfil = usuario?.codigoPerfil.orEmpty(),
                         rolUsuario = usuario?.role ?: "ESTUDIANTE",
                     )
                 }
@@ -51,7 +58,19 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
         }
     }
 
-    fun registrar(nombre: String, email: String, password: String, role: String) {
+    fun registrar(nombre: String, email: String, password: String, role: String, codigoProfesor: String) {
+        if (!ValidadoresFormulario.nombreValido(nombre) ||
+            !ValidadoresFormulario.correoValido(email) ||
+            !ValidadoresFormulario.contrasenaValida(password) ||
+            role !in setOf("ESTUDIANTE", "PROFESOR") ||
+            (role == "PROFESOR" && !ValidadoresFormulario.codigoProfesorValido(codigoProfesor))
+        ) {
+            val mensaje = if (role == "PROFESOR" && !ValidadoresFormulario.codigoProfesorValido(codigoProfesor)) {
+                "El código de invitación de profesor no es válido."
+            } else "Revisa los datos ingresados."
+            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.REGISTRO, mensaje = mensaje)
+            return
+        }
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
             runCatching { repository.registrarUsuario(nombre, email, password, role) }
@@ -63,6 +82,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                         correoUsuario = usuario?.email,
                         usuarioId = usuario?.id,
                         nombreUsuario = usuario?.nombre.orEmpty(),
+                        codigoPerfil = usuario?.codigoPerfil.orEmpty(),
                         rolUsuario = usuario?.role ?: role,
                     )
                 }
@@ -75,6 +95,10 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
 
     fun guardarPerfil(nombre: String, email: String) {
         val usuarioId = _estado.value.usuarioId ?: return
+        if (!ValidadoresFormulario.nombreValido(nombre) || !ValidadoresFormulario.correoValido(email)) {
+            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.EDITAR_PERFIL, mensaje = "Revisa el nombre y el correo.")
+            return
+        }
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
             runCatching { repository.actualizarPerfil(usuarioId, nombre, email) }
