@@ -45,7 +45,23 @@ abstract class AppDatabase : RoomDatabase() {
 
         private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE usuario ADD COLUMN nombre TEXT NOT NULL DEFAULT 'Estudiante'")
+                db.execSQL(
+                    """CREATE TABLE usuario_nuevo (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        nombre TEXT NOT NULL DEFAULT 'Estudiante',
+                        email TEXT NOT NULL,
+                        password TEXT NOT NULL,
+                        passwordSalt TEXT NOT NULL,
+                        role TEXT NOT NULL
+                    )""".trimIndent()
+                )
+                db.execSQL(
+                    """INSERT INTO usuario_nuevo (id, nombre, email, password, passwordSalt, role)
+                        SELECT id, 'Estudiante', email, password, passwordSalt, role FROM usuario""".trimIndent()
+                )
+                db.execSQL("DROP TABLE usuario")
+                db.execSQL("ALTER TABLE usuario_nuevo RENAME TO usuario")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_usuario_email ON usuario(email)")
                 db.execSQL(
                     """CREATE TABLE IF NOT EXISTS documento (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,

@@ -1,5 +1,6 @@
 package com.example.appcarab.vistaModelo
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appcarab.modelo.UsuarioRepository
@@ -43,7 +44,8 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                         rolUsuario = usuario?.role ?: "ESTUDIANTE",
                     )
                 }
-                .onFailure {
+                .onFailure { error ->
+                    Log.e(TAG, "Falló el inicio de sesión", error)
                     _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo iniciar sesión. Intenta nuevamente.")
                 }
         }
@@ -64,7 +66,8 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                         rolUsuario = usuario?.role ?: role,
                     )
                 }
-                .onFailure {
+                .onFailure { error ->
+                    Log.e(TAG, "Falló el registro de usuario", error)
                     _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo crear la cuenta. Intenta nuevamente.")
                 }
         }
@@ -84,7 +87,8 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                         nombreUsuario = usuario?.nombre ?: _estado.value.nombreUsuario,
                     )
                 }
-                .onFailure {
+                .onFailure { error ->
+                    Log.e(TAG, "Falló la actualización del perfil", error)
                     _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo guardar el perfil.")
                 }
         }
@@ -92,5 +96,9 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
 
     fun cerrarSesion() {
         _estado.value = EstadoAcceso(pantalla = PantallaAcceso.BIENVENIDA)
+    }
+
+    private companion object {
+        const val TAG = "InicioSesionVM"
     }
 }

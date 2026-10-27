@@ -12,6 +12,6 @@ data class Usuario(
     @ColumnInfo(defaultValue = "'Estudiante'") val nombre: String,
     val email: String,
     @ColumnInfo(name = "password") val passwordHash: String,
-    @ColumnInfo(defaultValue = "''") val passwordSalt: String,
+    val passwordSalt: String,
     val role: String = "ESTUDIANTE"
 )
