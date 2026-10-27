@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import com.example.appcarab.R
 import com.example.appcarab.ui.theme.EsfocarGold
+import com.example.appcarab.ui.theme.EsfocarGreenDark
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
@@ -58,18 +59,24 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(horizontal = 20.dp, vertical = 18.dp),
+                .padding(vertical = 10.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             LogoInstitucional()
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF062817),
-                shape = RoundedCornerShape(24.dp),
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            0.16f to Color(0x6600160A),
+                            1f to Color(0xAA001008),
+                        ),
+                    )
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
             ) {
-                Column(Modifier.padding(horizontal = 22.dp, vertical = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Box(Modifier.width(46.dp).height(4.dp).background(EsfocarGold, RoundedCornerShape(50)))
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         "Tu formación,\na tu alcance.",
                         color = Color.White,
@@ -79,30 +86,27 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
                     )
                     Text(
                         "Estudia, repasa y organiza tu material de formación desde un solo lugar.",
-                        color = Color(0xFFE6EEE8),
+                        color = Color.White,
                         style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 24.sp,
                     )
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(8.dp))
                     Button(
-                        onClick = onRegister,
+                        onClick = onLogin,
                         modifier = Modifier.fillMaxWidth().height(54.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = EsfocarGold,
-                            contentColor = Color(0xFF17251B),
-                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = EsfocarGreenDark),
                     ) {
-                        Text("Comenzar   →", fontWeight = FontWeight.Bold)
+                        Text("Iniciar sesión", fontWeight = FontWeight.SemiBold)
                     }
                     OutlinedButton(
-                        onClick = onLogin,
+                        onClick = onRegister,
                         modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.58f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.66f)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                     ) {
-                        Text("Ya tengo cuenta", fontWeight = FontWeight.SemiBold)
+                        Text("Crear cuenta", fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -164,16 +168,7 @@ private fun FondoFotograficoAnimado() {
                 },
             )
         }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color(0x990D1A12),
-                        0.42f to Color(0x99101D14),
-                        1f to Color(0xE6001008),
-                    ),
-                ),
-        )
+        // Tinte uniforme: mantiene legibles las fotos y evita que el borde inferior parezca un footer aparte.
+        Box(Modifier.fillMaxSize().background(Color(0x30001008)))
     }
 }

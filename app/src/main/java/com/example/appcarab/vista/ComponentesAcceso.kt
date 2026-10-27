@@ -50,14 +50,14 @@ internal fun AuthPage(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 internal fun LogoInstitucional() {
     Surface(
-        shape = RoundedCornerShape(18.dp),
-        color = Color.White,
-        shadowElevation = 10.dp,
+        modifier = Modifier.padding(start = 18.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White.copy(alpha = 0.88f),
     ) {
         Image(
             painter = painterResource(R.drawable.logo_esfocar),
             contentDescription = "Logo oficial de la Escuela de Formación de Carabineros de Chile",
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp).width(224.dp).height(52.dp),
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp).width(202.dp).height(44.dp),
         )
     }
 }
