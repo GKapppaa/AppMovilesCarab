@@ -43,6 +43,10 @@ En esta etapa trabajaremos en el flujo de acceso y en la carga de material del e
 - Biblioteca local de documentos PDF para listar, abrir, resumir y eliminar archivos.
 - Escaneo de una hoja con la cámara del dispositivo y conversión local de la captura a PDF.
 - Organización de documentos por categorías locales: General, Clases, Normativa, Tareas y Escaneos.
+- Perfiles de profesor: agregar estudiantes por su ID, enviar mensajes, compartir documentos propios y asignar tareas individuales.
+- Perfiles de estudiante: consultar los mensajes, materiales compartidos y tareas asignadas por su profesor.
+
+Las relaciones de aula, mensajes, tareas y material compartido se guardan localmente en Room para la demostración; no se sincronizan entre dispositivos ni consultan sistemas institucionales.
 
 La validación de usuario del MVP debe operar con datos de prueba; no debe consultar ni verificar cuentas en sistemas reales de ESFOCAR o Duoc UC.
 

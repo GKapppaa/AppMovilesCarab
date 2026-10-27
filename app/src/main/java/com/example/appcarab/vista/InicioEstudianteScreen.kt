@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.appcarab.modelo.Documento
+import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.ui.theme.EsfocarGreen
 import com.example.appcarab.ui.theme.EsfocarMuted
 import androidx.compose.foundation.background
@@ -41,6 +42,7 @@ internal fun InicioEstudiante(
     codigoPerfil: String,
     correo: String,
     rol: String,
+    estadoAula: EstadoAula,
     documentos: List<Documento>,
     documentosCargando: Boolean,
     documentosMensaje: String?,
@@ -50,6 +52,10 @@ internal fun InicioEstudiante(
     onDeleteDocument: (Documento) -> Unit,
     onChangeCategory: (Int, String) -> Unit,
     onOpenDocument: (Documento) -> Unit,
+    onAddStudent: (String) -> Unit,
+    onSendMessage: (String, String) -> Unit,
+    onShareMaterial: (String, Int) -> Unit,
+    onAssignTask: (String, String, String) -> Unit,
     onEditProfile: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -67,6 +73,17 @@ internal fun InicioEstudiante(
         OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth().height(48.dp)) {
             Text("Editar datos de usuario", color = EsfocarGreen)
         }
+        Spacer(Modifier.height(18.dp))
+        AulaPanel(
+            esProfesor = rol == "PROFESOR",
+            estado = estadoAula,
+            documentosPropios = documentos,
+            alAgregarAlumno = onAddStudent,
+            alEnviarMensaje = onSendMessage,
+            alCompartir = onShareMaterial,
+            alAsignarTarea = onAssignTask,
+            alAbrirMaterial = onOpenDocument,
+        )
         Spacer(Modifier.height(24.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
