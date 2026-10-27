@@ -3,7 +3,7 @@ package com.example.appcarab.vista
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.net.Uri
-import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
@@ -22,7 +22,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.PantallaAcceso
+import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.R
+import com.example.appcarab.modelo.Documento
 import com.example.appcarab.ui.theme.EsfocarGold
 import com.example.appcarab.ui.theme.EsfocarGreen
 import com.example.appcarab.ui.theme.EsfocarGreenDark
@@ -42,9 +44,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -53,8 +53,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -82,36 +84,16 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun AccesoApp(viewModel: InicioSesionVistaModelo) {
+fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: DocumentosVistaModelo) {
     val estado by viewModel.estado.collectAsState()
+    val estadoDocumentos by documentosViewModel.estado.collectAsState()
     val context = LocalContext.current
-    var pdfName by rememberSaveable { mutableStateOf<String?>(null) }
-    var pdfSize by rememberSaveable { mutableStateOf<Long?>(null) }
-    var pdfError by rememberSaveable { mutableStateOf<String?>(null) }
 
     val pdfPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val mimeType = context.contentResolver.getType(uri)
-        val details = context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                (if (nameIndex >= 0) cursor.getString(nameIndex) else null) to
-                    (if (sizeIndex >= 0) cursor.getLong(sizeIndex) else null)
-            } else null
-        }
-        val name = details?.first.orEmpty()
-        if (mimeType == "application/pdf" || name.endsWith(".pdf", ignoreCase = true)) {
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            pdfName = name.ifBlank { "Documento PDF" }
-            pdfSize = details?.second
-            pdfError = null
-        } else {
-            pdfError = "Selecciona un archivo PDF válido."
-        }
+        val usuarioId = estado.usuarioId
+        if (uri != null && usuarioId != null) documentosViewModel.agregar(usuarioId, uri)
     }
+    LaunchedEffect(estado.usuarioId) { estado.usuarioId?.let(documentosViewModel::observar) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when (estado.pantalla) {
@@ -133,18 +115,39 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo) {
                 onLogin = { viewModel.irA(PantallaAcceso.INICIAR_SESION) },
                 onSubmit = viewModel::registrar,
             )
+            PantallaAcceso.EDITAR_PERFIL -> FormularioPerfil(
+                nombreActual = estado.nombreUsuario,
+                correoActual = estado.correoUsuario.orEmpty(),
+                mensaje = estado.mensaje,
+                cargando = estado.cargando,
+                onBack = { viewModel.irA(PantallaAcceso.INICIO) },
+                onSubmit = viewModel::guardarPerfil,
+            )
             PantallaAcceso.INICIO -> InicioEstudiante(
+                nombre = estado.nombreUsuario,
                 correo = estado.correoUsuario.orEmpty(),
-                pdfName = pdfName,
-                pdfSize = pdfSize,
-                pdfError = pdfError,
+                rol = estado.rolUsuario,
+                documentos = estadoDocumentos.documentos,
+                documentosCargando = estadoDocumentos.cargando,
+                documentosMensaje = estadoDocumentos.mensaje,
+                documentosMensajeEsError = estadoDocumentos.mensajeEsError,
                 onChoosePdf = { pdfPicker.launch(arrayOf("application/pdf")) },
-                onLogout = {
-                    pdfName = null
-                    pdfSize = null
-                    pdfError = null
-                    viewModel.irA(PantallaAcceso.BIENVENIDA)
+                onDeleteDocument = documentosViewModel::eliminar,
+                onOpenDocument = { documento ->
+                    val uri = documentosViewModel.uriParaAbrir(documento)
+                    if (uri == null) {
+                        Toast.makeText(context, "No se encontró el archivo guardado.", Toast.LENGTH_LONG).show()
+                    } else {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(uri, "application/pdf")
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        runCatching { context.startActivity(Intent.createChooser(intent, "Abrir PDF")) }
+                            .onFailure { Toast.makeText(context, "No hay una aplicación disponible para abrir PDF.", Toast.LENGTH_LONG).show() }
+                    }
                 },
+                onEditProfile = { viewModel.irA(PantallaAcceso.EDITAR_PERFIL) },
+                onLogout = viewModel::cerrarSesion,
             )
         }
     }
@@ -159,39 +162,48 @@ private fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
             LogoInstitucional()
 
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    "ESCUELA DE FORMACIÓN · CHILE",
-                    color = EsfocarGold,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.3.sp,
-                )
-                Text(
-                    "Tu formación,\na tu alcance.",
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 43.sp,
-                )
-                Text(
-                    "Repasa, practica y fortalece tu preparación desde cualquier lugar.",
-                    color = Color.White.copy(alpha = 0.9f),
-                    style = MaterialTheme.typography.bodyLarge,
-                    lineHeight = 25.sp,
-                )
-                Box(
-                    Modifier
-                        .padding(top = 4.dp)
-                        .width(54.dp)
-                        .height(4.dp)
-                        .background(EsfocarGold, RoundedCornerShape(50)),
-                )
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xD908180F),
+                shape = RoundedCornerShape(24.dp),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.22f)),
+                shadowElevation = 12.dp,
+            ) {
+                Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text(
+                        "ESCUELA DE FORMACIÓN · CHILE",
+                        color = EsfocarGold,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.3.sp,
+                    )
+                    Text(
+                        "Tu formación,\na tu alcance.",
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 43.sp,
+                    )
+                    Text(
+                        "Repasa, practica y fortalece tu preparación desde cualquier lugar.",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge,
+                        lineHeight = 25.sp,
+                    )
+                    Box(
+                        Modifier
+                            .padding(top = 4.dp)
+                            .width(54.dp)
+                            .height(4.dp)
+                            .background(EsfocarGold, RoundedCornerShape(50)),
+                    )
+                }
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -342,7 +354,6 @@ private fun FormularioSesion(
             Text("¿Aún no tienes cuenta?", color = EsfocarMuted)
             TextButton(onClick = onRegister) { Text("Regístrate", color = EsfocarGreen, fontWeight = FontWeight.SemiBold) }
         }
-        FooterNote()
     }
 }
 
@@ -352,12 +363,15 @@ private fun FormularioRegistro(
     cargando: Boolean,
     onBack: () -> Unit,
     onLogin: () -> Unit,
-    onSubmit: (String, String) -> Unit,
+    onSubmit: (String, String, String, String) -> Unit,
 ) {
+    var nombre by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var confirmation by rememberSaveable { mutableStateOf("") }
+    var rol by rememberSaveable { mutableStateOf("ESTUDIANTE") }
     var enviado by rememberSaveable { mutableStateOf(false) }
+    val nombreError = enviado && nombre.trim().length < 3
     val emailError = enviado && !emailValido(email)
     val passwordError = enviado && !passwordValida(password)
     val confirmationError = enviado && password != confirmation
@@ -368,8 +382,31 @@ private fun FormularioRegistro(
         Spacer(Modifier.height(26.dp))
         Text("Crear cuenta", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
-        Text("Registro de prueba para estudiantes en formación.", color = EsfocarMuted)
+        Text("Crea tu perfil de formación.", color = EsfocarMuted)
         Spacer(Modifier.height(20.dp))
+        OutlinedTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Nombre de perfil (usa un dato de prueba)") },
+            singleLine = true,
+            isError = nombreError,
+            supportingText = if (nombreError) ({ Text("Ingresa al menos 3 caracteres.") }) else null,
+        )
+        Spacer(Modifier.height(16.dp))
+        Text("Tipo de perfil", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            FilterChip(
+                selected = rol == "ESTUDIANTE",
+                onClick = { rol = "ESTUDIANTE" },
+                label = { Text("Estudiante") },
+            )
+            FilterChip(
+                selected = rol == "PROFESOR",
+                onClick = { rol = "PROFESOR" },
+                label = { Text("Profesor") },
+            )
+        }
         OutlinedTextField(
             value = email,
             onValueChange = { email = it.trimStart() },
@@ -391,7 +428,9 @@ private fun FormularioRegistro(
         Button(
             onClick = {
                 enviado = true
-                if (emailValido(email) && passwordValida(password) && password == confirmation) onSubmit(email, password)
+                if (nombre.trim().length >= 3 && emailValido(email) && passwordValida(password) && password == confirmation) {
+                    onSubmit(nombre, email, password, rol)
+                }
             },
             enabled = !cargando,
             modifier = Modifier.fillMaxWidth().height(54.dp),
@@ -401,54 +440,171 @@ private fun FormularioRegistro(
             Text("¿Ya tienes una cuenta?", color = EsfocarMuted)
             TextButton(onClick = onLogin) { Text("Inicia sesión", color = EsfocarGreen, fontWeight = FontWeight.SemiBold) }
         }
-        FooterNote()
+    }
+}
+
+@Composable
+private fun FormularioPerfil(
+    nombreActual: String,
+    correoActual: String,
+    mensaje: String?,
+    cargando: Boolean,
+    onBack: () -> Unit,
+    onSubmit: (String, String) -> Unit,
+) {
+    var nombre by rememberSaveable(nombreActual) { mutableStateOf(nombreActual) }
+    var email by rememberSaveable(correoActual) { mutableStateOf(correoActual) }
+    var enviado by rememberSaveable { mutableStateOf(false) }
+    val nombreError = enviado && nombre.trim().length < 3
+    val emailError = enviado && !emailValido(email)
+
+    AuthPage {
+        TextButton(onClick = onBack) { Text("‹  Volver", color = EsfocarGreen) }
+        LogoInstitucional()
+        Spacer(Modifier.height(24.dp))
+        Text("Editar perfil", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text("Actualiza tu nombre de perfil y correo.", color = EsfocarMuted)
+        Spacer(Modifier.height(20.dp))
+        OutlinedTextField(
+            value = nombre,
+            onValueChange = { nombre = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Nombre de perfil") },
+            singleLine = true,
+            isError = nombreError,
+            supportingText = if (nombreError) ({ Text("Ingresa al menos 3 caracteres.") }) else null,
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it.trimStart() },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Correo electrónico") },
+            singleLine = true,
+            isError = emailError,
+            supportingText = if (emailError) ({ Text("Ingresa un correo válido.") }) else null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+        )
+        mensaje?.let { InlineMessage(it, true) }
+        Spacer(Modifier.height(20.dp))
+        Button(
+            onClick = {
+                enviado = true
+                if (!nombreError && !emailError) onSubmit(nombre, email)
+            },
+            enabled = !cargando,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+        ) { Text(if (cargando) "Guardando…" else "Guardar cambios") }
     }
 }
 
 @Composable
 private fun InicioEstudiante(
+    nombre: String,
     correo: String,
-    pdfName: String?,
-    pdfSize: Long?,
-    pdfError: String?,
+    rol: String,
+    documentos: List<Documento>,
+    documentosCargando: Boolean,
+    documentosMensaje: String?,
+    documentosMensajeEsError: Boolean,
     onChoosePdf: () -> Unit,
+    onDeleteDocument: (Documento) -> Unit,
+    onOpenDocument: (Documento) -> Unit,
+    onEditProfile: () -> Unit,
     onLogout: () -> Unit,
 ) {
+    var documentoAEliminar by remember { mutableStateOf<Documento?>(null) }
+    var resumenExpandido by rememberSaveable { mutableIntStateOf(-1) }
+
     AuthPage {
         LogoInstitucional()
-        Spacer(Modifier.height(28.dp))
-        Text("Área de estudiante", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(6.dp))
-        Text(correo, color = EsfocarMuted)
+        Spacer(Modifier.height(24.dp))
+        Text("Hola, $nombre", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(if (rol == "PROFESOR") "Perfil de profesor" else "Perfil de estudiante", color = EsfocarMuted)
+        Text(correo, color = EsfocarMuted, style = MaterialTheme.typography.bodySmall)
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = onEditProfile, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            Text("Editar datos de usuario", color = EsfocarGreen)
+        }
         Spacer(Modifier.height(24.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Material de estudio", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("Selecciona un PDF autorizado para consultarlo desde tu dispositivo.", color = EsfocarMuted)
-                OutlinedButton(onClick = onChoosePdf, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)) {
-                    Text(if (pdfName == null) "Seleccionar PDF" else "Cambiar PDF", color = EsfocarGreen)
+                Text(
+                    "Los PDF quedan en este dispositivo. Se extrae un resumen de texto de las primeras páginas; archivos escaneados requieren OCR.",
+                    color = EsfocarMuted,
+                )
+                Button(
+                    onClick = onChoosePdf,
+                    enabled = !documentosCargando,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                ) {
+                    Text(if (documentosCargando) "Procesando documento…" else "Cargar documento PDF")
                 }
-                pdfName?.let {
-                    Text("Documento seleccionado: $it", style = MaterialTheme.typography.bodyMedium)
-                    pdfSize?.let { size -> Text(formatSize(size), color = EsfocarMuted, style = MaterialTheme.typography.bodySmall) }
-                    Text("El archivo permanece en este dispositivo; no se envía a un servidor.", color = EsfocarMuted, style = MaterialTheme.typography.bodySmall)
+                documentosMensaje?.let { InlineMessage(it, documentosMensajeEsError) }
+                Text("Mis documentos (${documentos.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                if (documentos.isEmpty()) {
+                    Text("Aún no tienes documentos. Carga un PDF para empezar.", color = EsfocarMuted)
+                } else {
+                    documentos.forEach { documento ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+                        ) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(documento.nombre, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text("Resumen automático · primeros apartados", color = EsfocarGreen, style = MaterialTheme.typography.labelMedium)
+                                Text(
+                                    documento.resumen,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = if (resumenExpandido == documento.id) Int.MAX_VALUE else 4,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    TextButton(onClick = {
+                                        resumenExpandido = if (resumenExpandido == documento.id) -1 else documento.id
+                                    }) {
+                                        Text(if (resumenExpandido == documento.id) "Ver menos" else "Ver resumen")
+                                    }
+                                    TextButton(onClick = { onOpenDocument(documento) }) {
+                                        Text("Abrir PDF", color = EsfocarGreen)
+                                    }
+                                    TextButton(onClick = { documentoAEliminar = documento }) {
+                                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-                pdfError?.let { InlineMessage(it, true) }
             }
         }
-        Spacer(Modifier.height(18.dp))
-        Text("Próximamente", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(6.dp))
-        Text("Aquí estarán los contenidos, trivias y autoevaluaciones disponibles para el MVP.", color = EsfocarMuted)
         Spacer(Modifier.height(28.dp))
         OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth().height(50.dp), shape = RoundedCornerShape(14.dp)) {
             Text("Cerrar sesión", color = EsfocarGreen)
         }
-        FooterNote()
+    }
+
+    documentoAEliminar?.let { documento ->
+        AlertDialog(
+            onDismissRequest = { documentoAEliminar = null },
+            title = { Text("Eliminar documento") },
+            text = { Text("¿Quieres eliminar ‘${documento.nombre}’ del dispositivo?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteDocument(documento)
+                    documentoAEliminar = null
+                }) { Text("Eliminar", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { documentoAEliminar = null }) { Text("Cancelar") } },
+        )
     }
 }
 
@@ -469,18 +625,6 @@ private fun AuthPage(content: @Composable ColumnScope.() -> Unit) {
             Spacer(Modifier.height(24.dp))
         },
     )
-}
-
-@Composable
-private fun FeatureLine(title: String, detail: String) {
-    Row(verticalAlignment = Alignment.Top) {
-        Box(Modifier.padding(top = 6.dp).size(10.dp).background(EsfocarGold, RoundedCornerShape(50)))
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(title, fontWeight = FontWeight.SemiBold)
-            Text(detail, color = EsfocarMuted, style = MaterialTheme.typography.bodySmall)
-        }
-    }
 }
 
 @Composable
@@ -513,33 +657,23 @@ private fun InlineMessage(message: String, isError: Boolean) {
     )
 }
 
-@Composable
-private fun FooterNote() {
-    Spacer(Modifier.height(30.dp))
-    Text(
-        "Prototipo académico · DSY1105",
-        modifier = Modifier.fillMaxWidth(),
-        color = EsfocarMuted,
-        style = MaterialTheme.typography.labelSmall,
-    )
-}
-
 private fun emailValido(email: String): Boolean =
     android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()
 
 private fun passwordValida(password: String): Boolean =
     password.length >= 8 && password.any(Char::isLetter) && password.any(Char::isDigit)
 
-private fun formatSize(size: Long): String = when {
-    size < 1024 -> "$size B"
-    size < 1024 * 1024 -> "${size / 1024} KB"
-    else -> "${size / (1024 * 1024)} MB"
-}
 @Composable
 private fun LogoInstitucional() {
-    Image(
-        painter = painterResource(R.drawable.logo_esfocar),
-        contentDescription = "Logo oficial de la Escuela de Formación de Carabineros de Chile",
-        modifier = Modifier.fillMaxWidth().height(76.dp),
-    )
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = Color.White,
+        shadowElevation = 10.dp,
+    ) {
+        Image(
+            painter = painterResource(R.drawable.logo_esfocar),
+            contentDescription = "Logo oficial de la Escuela de Formación de Carabineros de Chile",
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp).width(224.dp).height(52.dp),
+        )
+    }
 }

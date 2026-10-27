@@ -21,6 +21,8 @@ En esta etapa trabajaremos en el flujo de acceso y en la carga de material del e
 - Validaciones para textos y correos electrónicos.
 - Validación de imágenes seleccionadas o cargadas, cuando corresponda al flujo definido.
 - Espacio para que el estudiante pueda seleccionar y subir un archivo PDF.
+- Perfiles de prueba de estudiante y profesor, con edición de nombre y correo.
+- Biblioteca local de documentos PDF para listar, abrir, resumir y eliminar archivos.
 
 La validación de usuario del MVP debe operar con datos de prueba; no debe consultar ni verificar cuentas en sistemas reales de ESFOCAR o Duoc UC.
 
@@ -77,10 +79,11 @@ La validación de usuario del MVP debe operar con datos de prueba; no debe consu
 - No utilizar datos reales de estudiantes ni conectar con sistemas institucionales productivos.
 - El material académico y los casos utilizados deben ser ficticios, sintéticos o estar depurados y autorizados para uso académico.
 - El MVP no representa una aplicación productiva ni definitiva para la institución.
+- Los documentos se guardan en el almacenamiento privado del dispositivo. El resumen es extractivo, se calcula sin conexión sobre texto seleccionable de las primeras páginas y no incluye OCR para PDFs escaneados.
 
 ## Identidad visual
 
-Usar como referencia la identidad institucional mostrada en el material del caso de **Duoc UC · Escuela de Informática y Telecomunicaciones · CITT**. Mantener una paleta basada en los tonos azules institucionales visibles en ese material. Incorporar un archivo de logo oficial únicamente cuando el equipo disponga de un recurso autorizado; no recrear ni inventar el logo.
+Usar el logo oficial de ESFOCAR y su paleta verde y dorada como identidad principal de la aplicación. La paleta azul del formato académico Duoc UC corresponde al documento del curso, no a la identidad de Carabineros. No recrear ni alterar el logo.
 
 ## Fotografías de bienvenida
 
