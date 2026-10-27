@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // Define las entidades y la versión de la base de datos.
 @Database(
     entities = [Usuario::class, Documento::class],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -30,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "app_database" // Nombre del archivo de la base de datos en el teléfono
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
                 INSTANCE = instance
                 instance
             }
@@ -81,6 +81,12 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE usuario ADD COLUMN codigoPerfil TEXT NOT NULL DEFAULT ''")
                 db.execSQL("UPDATE usuario SET codigoPerfil = CASE WHEN role = 'PROFESOR' THEN 'PROF-' ELSE 'EST-' END || printf('%06d', id)")
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE documento ADD COLUMN categoria TEXT NOT NULL DEFAULT 'General'")
             }
         }
     }

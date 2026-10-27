@@ -59,6 +59,19 @@ class DocumentosVistaModelo(private val repository: DocumentoRepository, private
         }
     }
 
+    fun uriTemporalEscaneo(usuarioId: Int): Uri = repository.uriTemporalEscaneo(usuarioId)
+
+    fun agregarEscaneo(usuarioId: Int, uri: Uri) {
+        viewModelScope.launch {
+            _estado.value = _estado.value.copy(cargando = true, mensaje = null)
+            runCatching { repository.agregarEscaneo(usuarioId, uri) }
+                .onSuccess { _estado.value = _estado.value.copy(cargando = false, mensaje = "Escaneo guardado como PDF.") }
+                .onFailure {
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = it.message ?: "No se pudo guardar el escaneo.", mensajeEsError = true)
+                }
+        }
+    }
+
     fun eliminar(documento: Documento) {
         viewModelScope.launch {
             runCatching { repository.eliminar(documento) }
@@ -68,5 +81,9 @@ class DocumentosVistaModelo(private val repository: DocumentoRepository, private
     }
 
     fun uriParaAbrir(documento: Documento) = repository.uriParaAbrir(documento)
+
+    fun cambiarCategoria(documentoId: Int, categoria: String) {
+        viewModelScope.launch { dao.actualizarCategoria(documentoId, categoria) }
+    }
 
 }

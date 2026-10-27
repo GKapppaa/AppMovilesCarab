@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -93,10 +94,16 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
     val estado by viewModel.estado.collectAsState()
     val estadoDocumentos by documentosViewModel.estado.collectAsState()
     val context = LocalContext.current
+    var uriEscaneo by rememberSaveable { mutableStateOf<String?>(null) }
 
     val pdfPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         val usuarioId = estado.usuarioId
         if (uri != null && usuarioId != null) documentosViewModel.agregar(usuarioId, uri)
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { guardado ->
+        val uri = uriEscaneo?.let(Uri::parse)
+        val usuarioId = estado.usuarioId
+        if (guardado && uri != null && usuarioId != null) documentosViewModel.agregarEscaneo(usuarioId, uri)
     }
     LaunchedEffect(estado.usuarioId) { estado.usuarioId?.let(documentosViewModel::observar) }
 
@@ -138,7 +145,16 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
                 documentosMensaje = estadoDocumentos.mensaje,
                 documentosMensajeEsError = estadoDocumentos.mensajeEsError,
                 onChoosePdf = { pdfPicker.launch(arrayOf("application/pdf")) },
+                onScan = {
+                    estado.usuarioId?.let { usuarioId ->
+                        documentosViewModel.uriTemporalEscaneo(usuarioId).also {
+                            uriEscaneo = it.toString()
+                            cameraLauncher.launch(it)
+                        }
+                    }
+                },
                 onDeleteDocument = documentosViewModel::eliminar,
+                onChangeCategory = documentosViewModel::cambiarCategoria,
                 onOpenDocument = { documento ->
                     val uri = documentosViewModel.uriParaAbrir(documento)
                     if (uri == null) {
@@ -532,7 +548,9 @@ private fun InicioEstudiante(
     documentosMensaje: String?,
     documentosMensajeEsError: Boolean,
     onChoosePdf: () -> Unit,
+    onScan: () -> Unit,
     onDeleteDocument: (Documento) -> Unit,
+    onChangeCategory: (Int, String) -> Unit,
     onOpenDocument: (Documento) -> Unit,
     onEditProfile: () -> Unit,
     onLogout: () -> Unit,
@@ -572,6 +590,9 @@ private fun InicioEstudiante(
                 ) {
                     Text(if (documentosCargando) "Procesando documento…" else "Cargar documento PDF")
                 }
+                OutlinedButton(onClick = onScan, enabled = !documentosCargando, modifier = Modifier.fillMaxWidth()) {
+                    Text("Escanear con cámara", color = EsfocarGreen)
+                }
                 documentosMensaje?.let { InlineMessage(it, documentosMensajeEsError) }
                 Text("Mis documentos (${documentos.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 if (documentos.isEmpty()) {
@@ -585,6 +606,19 @@ private fun InicioEstudiante(
                         ) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(documento.nombre, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text("Carpeta: ${documento.categoria}", color = EsfocarMuted, style = MaterialTheme.typography.labelMedium)
+                                Row(
+                                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    listOf("General", "Clases", "Normativa", "Tareas", "Escaneos").forEach { categoria ->
+                                        FilterChip(
+                                            selected = documento.categoria == categoria,
+                                            onClick = { onChangeCategory(documento.id, categoria) },
+                                            label = { Text(categoria) },
+                                        )
+                                    }
+                                }
                                 Text("Resumen automático · primeros apartados", color = EsfocarGreen, style = MaterialTheme.typography.labelMedium)
                                 Text(
                                     documento.resumen,

@@ -16,4 +16,7 @@ interface DocumentoDao {
 
     @Delete
     suspend fun eliminar(documento: Documento)
+
+    @Query("UPDATE documento SET categoria = :categoria WHERE id = :documentoId")
+    suspend fun actualizarCategoria(documentoId: Int, categoria: String)
 }
