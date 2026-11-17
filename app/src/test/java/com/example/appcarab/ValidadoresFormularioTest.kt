@@ -23,4 +23,16 @@ class ValidadoresFormularioTest {
         assertFalse(ValidadoresFormulario.contrasenaValida("ClaveSegura1"))
         assertFalse(ValidadoresFormulario.contrasenaValida("C1! a"))
     }
+
+    @Test
+    fun validaIdsMensajesYCamposDeTareas() {
+        assertTrue(ValidadoresFormulario.codigoAlumnoValido("EST-000123"))
+        assertFalse(ValidadoresFormulario.codigoAlumnoValido("PROF-000123"))
+        assertTrue(ValidadoresFormulario.mensajeValido("Revisa el material de la próxima clase."))
+        assertFalse(ValidadoresFormulario.mensajeValido(" "))
+        assertTrue(ValidadoresFormulario.tituloTareaValido("Repaso unidad uno"))
+        assertFalse(ValidadoresFormulario.tituloTareaValido("ok"))
+        assertTrue(ValidadoresFormulario.descripcionTareaValida("Resolver y comentar el caso práctico de la unidad."))
+        assertFalse(ValidadoresFormulario.descripcionTareaValida("abc"))
+    }
 }

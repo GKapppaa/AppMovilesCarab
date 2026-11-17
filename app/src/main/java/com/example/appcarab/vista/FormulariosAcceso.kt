@@ -63,7 +63,7 @@ internal fun FormularioSesion(
             label = { Text("Correo electrónico") },
             singleLine = true,
             isError = emailError,
-            supportingText = if (emailError) ({ ValidationHint("Ingresa un correo válido.") }) else null,
+            supportingText = if (emailError) ({ ValidationHint("Por favor Ingresa un correo válido.") }) else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         )
         Spacer(Modifier.height(12.dp))

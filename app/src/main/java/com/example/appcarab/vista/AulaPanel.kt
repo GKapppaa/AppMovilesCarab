@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.appcarab.modelo.Documento
+import com.example.appcarab.modelo.ValidadoresFormulario
 import com.example.appcarab.vistaModelo.EstadoAula
 
 @Composable
@@ -42,6 +43,9 @@ internal fun AulaPanel(
     var mensaje by remember { mutableStateOf("") }
     var tituloTarea by remember { mutableStateOf("") }
     var detalleTarea by remember { mutableStateOf("") }
+    var envioCodigoIntentado by remember { mutableStateOf(false) }
+    var envioMensajeIntentado by remember { mutableStateOf(false) }
+    var envioTareaIntentado by remember { mutableStateOf(false) }
 
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -55,8 +59,15 @@ internal fun AulaPanel(
                         modifier = Modifier.weight(1f),
                         label = { Text("ID del alumno") },
                         singleLine = true,
+                        isError = envioCodigoIntentado && !ValidadoresFormulario.codigoAlumnoValido(codigoAlumno),
+                        supportingText = if (envioCodigoIntentado && !ValidadoresFormulario.codigoAlumnoValido(codigoAlumno)) {
+                            ({ ValidationHint("Formato requerido: EST-######.") })
+                        } else null,
                     )
-                    Button(onClick = { alAgregarAlumno(codigoAlumno) }) { Text("Agregar") }
+                    Button(onClick = {
+                        envioCodigoIntentado = true
+                        if (ValidadoresFormulario.codigoAlumnoValido(codigoAlumno)) alAgregarAlumno(codigoAlumno)
+                    }) { Text("Agregar") }
                 }
                 estado.alumnos.forEach { alumno ->
                     Text("${alumno.nombre} · ${alumno.codigoPerfil}", style = MaterialTheme.typography.bodyMedium)
@@ -68,8 +79,18 @@ internal fun AulaPanel(
                     onValueChange = { mensaje = it },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Mensaje para el ID indicado") },
+                    isError = envioMensajeIntentado && !ValidadoresFormulario.mensajeValido(mensaje),
+                    supportingText = if (envioMensajeIntentado && !ValidadoresFormulario.mensajeValido(mensaje)) {
+                        ({ ValidationHint("El mensaje admite entre 1 y 500 caracteres.") })
+                    } else null,
                 )
-                Button(onClick = { alEnviarMensaje(codigoAlumno, mensaje); mensaje = "" }, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = {
+                    envioMensajeIntentado = true
+                    if (ValidadoresFormulario.codigoAlumnoValido(codigoAlumno) && ValidadoresFormulario.mensajeValido(mensaje)) {
+                        alEnviarMensaje(codigoAlumno, mensaje)
+                        mensaje = ""
+                    }
+                }, modifier = Modifier.fillMaxWidth()) {
                     Text("Enviar mensaje")
                 }
                 Text("Compartir material", style = MaterialTheme.typography.titleMedium)
@@ -80,12 +101,32 @@ internal fun AulaPanel(
                     }
                 }
                 Text("Asignar tarea", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(tituloTarea, { tituloTarea = it }, Modifier.fillMaxWidth(), label = { Text("Título") }, singleLine = true)
-                OutlinedTextField(detalleTarea, { detalleTarea = it }, Modifier.fillMaxWidth(), label = { Text("Instrucciones") })
+                OutlinedTextField(
+                    tituloTarea, { tituloTarea = it }, Modifier.fillMaxWidth(),
+                    label = { Text("Título") }, singleLine = true,
+                    isError = envioTareaIntentado && !ValidadoresFormulario.tituloTareaValido(tituloTarea),
+                    supportingText = if (envioTareaIntentado && !ValidadoresFormulario.tituloTareaValido(tituloTarea)) {
+                        ({ ValidationHint("Usa entre 3 y 80 caracteres.") })
+                    } else null,
+                )
+                OutlinedTextField(
+                    detalleTarea, { detalleTarea = it }, Modifier.fillMaxWidth(),
+                    label = { Text("Instrucciones") },
+                    isError = envioTareaIntentado && !ValidadoresFormulario.descripcionTareaValida(detalleTarea),
+                    supportingText = if (envioTareaIntentado && !ValidadoresFormulario.descripcionTareaValida(detalleTarea)) {
+                        ({ ValidationHint("Usa entre 5 y 1000 caracteres.") })
+                    } else null,
+                )
                 Button(onClick = {
-                    alAsignarTarea(codigoAlumno, tituloTarea, detalleTarea)
-                    tituloTarea = ""
-                    detalleTarea = ""
+                    envioTareaIntentado = true
+                    if (ValidadoresFormulario.codigoAlumnoValido(codigoAlumno) &&
+                        ValidadoresFormulario.tituloTareaValido(tituloTarea) &&
+                        ValidadoresFormulario.descripcionTareaValida(detalleTarea)
+                    ) {
+                        alAsignarTarea(codigoAlumno, tituloTarea, detalleTarea)
+                        tituloTarea = ""
+                        detalleTarea = ""
+                    }
                 }, modifier = Modifier.fillMaxWidth()) { Text("Asignar tarea") }
             } else {
                 Text("Mensajes del profesor", style = MaterialTheme.typography.titleLarge)
