@@ -17,8 +17,22 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 2. Usar JDK 17 y sincronizar Gradle.
 3. Ejecutar `app` en un emulador Android o dispositivo físico.
 4. Para compilar desde terminal: `./gradlew assembleDebug`; para las pruebas: `./gradlew testDebugUnitTest`.
+5. Para iniciar el backend Spring Boot desde la raíz: `./gradlew -p backend bootRun`. Usa H2 en `backend/data/esfocar`.
+6. En el emulador Android, compila con `./gradlew -PapiBaseUrl=http://10.0.2.2:8081/api/v1/ assembleDebug`. En un dispositivo físico, reemplaza `10.0.2.2` por la IP del computador donde corre el backend.
 
-Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID `EST-######` o `PROF-######`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
+## API académica
+
+El servicio Spring Boot expone:
+
+- `GET /api/v1/health`
+- CRUD `GET /api/v1/{perfiles|secciones|mensajes|materiales|tareas}`
+- `GET`, `PUT` y `DELETE /api/v1/{tipo}/{clave}`; `POST /api/v1/{tipo}`
+
+Los registros usan una clave única por tipo y un campo `contenido` JSON para mantener el contrato flexible durante el MVP. La consola H2 local está en `/db-console`.
+
+La app usa Retrofit para sincronizar perfiles, secciones, mensajes, materiales y tareas con el backend cuando está disponible; Room sigue funcionando como almacenamiento local si no hay conexión. Como fuente externa de práctica, Retrofit consulta Open Trivia DB (`https://opentdb.com/api.php?amount=1&type=multiple`) y presenta la trivia en el panel del estudiante. El tráfico HTTP se habilita solo para la configuración debug local; una publicación debe usar HTTPS.
+
+Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID global de prueba `EST-UUID` o `PROF-UUID`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
 
 El registro requiere entre 2 y 5 partes de nombre válidas (sin números ni símbolos ajenos a nombres) y una contraseña de 8 a 64 caracteres con mayúscula, minúscula, número y carácter especial, sin espacios.
 
