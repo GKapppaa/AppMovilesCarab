@@ -14,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,11 +49,22 @@ internal fun AulaPanel(
     var envioMensajeIntentado by remember { mutableStateOf(false) }
     var envioTareaIntentado by remember { mutableStateOf(false) }
 
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            TextButton(onClick = alComprobarApi) { Text("Comprobar conexión con API") }
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = CardDefaults.outlinedCardBorder(),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            OutlinedButton(
+                onClick = alComprobarApi,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Text("Comprobar conexión con API")
+            }
             if (esProfesor) {
-                Text("Mi sección", style = MaterialTheme.typography.titleLarge)
+                Text("Estudiantes", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
                 Text("Agrega estudiantes usando el ID que aparece en su perfil.", style = MaterialTheme.typography.bodyMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
@@ -131,19 +143,61 @@ internal fun AulaPanel(
                     }
                 }, modifier = Modifier.fillMaxWidth()) { Text("Asignar tarea") }
             } else {
-                Text("Mensajes del profesor", style = MaterialTheme.typography.titleLarge)
-                if (estado.mensajes.isEmpty()) Text("No tienes mensajes nuevos.")
-                estado.mensajes.forEach { Text(it.texto, style = MaterialTheme.typography.bodyMedium) }
-                Text("Tareas", style = MaterialTheme.typography.titleMedium)
-                if (estado.tareas.isEmpty()) Text("No tienes tareas asignadas.")
-                estado.tareas.forEach { Text("${it.titulo}: ${it.descripcion}", style = MaterialTheme.typography.bodyMedium) }
-                Text("Material compartido", style = MaterialTheme.typography.titleMedium)
-                if (estado.materiales.isEmpty()) Text("Aún no te han compartido material.")
-                estado.materiales.forEach { documento ->
-                    TextButton(onClick = { alAbrirMaterial(documento) }) { Text("Abrir ${documento.nombre}") }
-                }
+                AulaEstudiante(estado, alAbrirMaterial)
             }
             estado.mensaje?.let { InlineMessage(it, estado.error) }
+        }
+    }
+}
+
+@Composable
+private fun AulaEstudiante(estado: EstadoAula, alAbrirMaterial: (Documento) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Mensajes", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        if (estado.mensajes.isEmpty()) {
+            Text("No tienes mensajes nuevos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            estado.mensajes.forEach { mensaje ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                ) {
+                    Text(mensaje.texto, modifier = Modifier.padding(14.dp), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+        Text("Tareas", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        if (estado.tareas.isEmpty()) {
+            Text("No tienes tareas asignadas.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            estado.tareas.forEach { tarea ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(tarea.titulo, style = MaterialTheme.typography.titleSmall)
+                        Text(tarea.descripcion, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(4.dp))
+        Text("Material compartido", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        if (estado.materiales.isEmpty()) {
+            Text("Aún no te han compartido material.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            estado.materiales.forEach { documento ->
+                TextButton(
+                    onClick = { alAbrirMaterial(documento) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                ) { Text("Abrir ${documento.nombre}") }
+            }
         }
     }
 }
