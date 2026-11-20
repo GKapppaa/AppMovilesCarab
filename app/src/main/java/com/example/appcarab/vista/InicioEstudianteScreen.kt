@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.appcarab.modelo.Documento
 import com.example.appcarab.vistaModelo.EstadoAula
+import com.example.appcarab.vistaModelo.EstadoTrivia
 import com.example.appcarab.ui.theme.EsfocarGreen
 import com.example.appcarab.ui.theme.EsfocarMuted
 import androidx.compose.foundation.background
@@ -43,6 +44,9 @@ internal fun InicioEstudiante(
     correo: String,
     rol: String,
     estadoAula: EstadoAula,
+    estadoTrivia: EstadoTrivia,
+    onLoadTrivia: () -> Unit,
+    onAnswerTrivia: (String) -> Unit,
     documentos: List<Documento>,
     documentosCargando: Boolean,
     documentosMensaje: String?,
@@ -56,6 +60,7 @@ internal fun InicioEstudiante(
     onSendMessage: (String, String) -> Unit,
     onShareMaterial: (String, Int) -> Unit,
     onAssignTask: (String, String, String) -> Unit,
+    onCheckApi: () -> Unit,
     onEditProfile: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -82,8 +87,11 @@ internal fun InicioEstudiante(
             alEnviarMensaje = onSendMessage,
             alCompartir = onShareMaterial,
             alAsignarTarea = onAssignTask,
+            alComprobarApi = onCheckApi,
             alAbrirMaterial = onOpenDocument,
         )
+        Spacer(Modifier.height(18.dp))
+        TriviaPanel(estadoTrivia, onLoadTrivia, onAnswerTrivia)
         Spacer(Modifier.height(24.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),

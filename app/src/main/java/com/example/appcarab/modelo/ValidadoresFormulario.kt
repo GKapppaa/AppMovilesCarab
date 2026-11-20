@@ -24,7 +24,9 @@ object ValidadoresFormulario {
         contrasena == confirmacion
 
     fun codigoProfesorValido(codigo: String): Boolean = codigo.trim() == CODIGO_PROFESOR_DEMO
-    fun codigoAlumnoValido(codigo: String): Boolean = Regex("^EST-\\d{6}$").matches(codigo.trim().uppercase())
+    fun codigoAlumnoValido(codigo: String): Boolean =
+        Regex("^EST-(?:\\d{6}|[A-F0-9]{8}(?:-[A-F0-9]{4}){3}-[A-F0-9]{12})$")
+            .matches(codigo.trim().uppercase())
     fun mensajeValido(texto: String): Boolean = texto.trim().length in 1..500 && !texto.any(Char::isISOControl)
     fun tituloTareaValido(texto: String): Boolean = texto.trim().length in 3..80 && !texto.any(Char::isISOControl)
     fun descripcionTareaValida(texto: String): Boolean = texto.trim().length in 5..1000 && !texto.any(Char::isISOControl)

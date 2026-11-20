@@ -37,6 +37,7 @@ internal fun AulaPanel(
     alEnviarMensaje: (String, String) -> Unit,
     alCompartir: (String, Int) -> Unit,
     alAsignarTarea: (String, String, String) -> Unit,
+    alComprobarApi: () -> Unit,
     alAbrirMaterial: (Documento) -> Unit,
 ) {
     var codigoAlumno by remember { mutableStateOf("") }
@@ -49,6 +50,7 @@ internal fun AulaPanel(
 
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            TextButton(onClick = alComprobarApi) { Text("Comprobar conexión con API") }
             if (esProfesor) {
                 Text("Mi sección", style = MaterialTheme.typography.titleLarge)
                 Text("Agrega estudiantes usando el ID que aparece en su perfil.", style = MaterialTheme.typography.bodyMedium)

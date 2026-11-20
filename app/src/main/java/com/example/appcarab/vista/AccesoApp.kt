@@ -22,12 +22,19 @@ import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.PantallaAcceso
 import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.EstadoAula
+import com.example.appcarab.vistaModelo.TriviaVistaModelo
 
 @Composable
-fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: DocumentosVistaModelo, aulaViewModel: AulaVistaModelo) {
+fun AccesoApp(
+    viewModel: InicioSesionVistaModelo,
+    documentosViewModel: DocumentosVistaModelo,
+    aulaViewModel: AulaVistaModelo,
+    triviaViewModel: TriviaVistaModelo,
+) {
     val estado by viewModel.estado.collectAsState()
     val estadoDocumentos by documentosViewModel.estado.collectAsState()
     val estadoAula by aulaViewModel.estado.collectAsState()
+    val estadoTrivia by triviaViewModel.estado.collectAsState()
     val context = LocalContext.current
     var uriEscaneo by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -79,6 +86,9 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
                 correo = estado.correoUsuario.orEmpty(),
                 rol = estado.rolUsuario,
                 estadoAula = estadoAula,
+                estadoTrivia = estadoTrivia,
+                onLoadTrivia = triviaViewModel::cargarPregunta,
+                onAnswerTrivia = triviaViewModel::responder,
                 documentos = estadoDocumentos.documentos,
                 documentosCargando = estadoDocumentos.cargando,
                 documentosMensaje = estadoDocumentos.mensaje,
@@ -111,6 +121,7 @@ fun AccesoApp(viewModel: InicioSesionVistaModelo, documentosViewModel: Documento
                 onSendMessage = { codigo, texto -> estado.usuarioId?.let { aulaViewModel.enviarMensaje(it, codigo, texto) } },
                 onShareMaterial = { codigo, documentoId -> estado.usuarioId?.let { aulaViewModel.compartirMaterial(it, codigo, documentoId) } },
                 onAssignTask = { codigo, titulo, descripcion -> estado.usuarioId?.let { aulaViewModel.asignarTarea(it, codigo, titulo, descripcion) } },
+                onCheckApi = aulaViewModel::comprobarApi,
                 onEditProfile = { viewModel.irA(PantallaAcceso.EDITAR_PERFIL) },
                 onLogout = viewModel::cerrarSesion,
             )

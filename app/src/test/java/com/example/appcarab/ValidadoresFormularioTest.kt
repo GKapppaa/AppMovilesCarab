@@ -27,6 +27,7 @@ class ValidadoresFormularioTest {
     @Test
     fun validaIdsMensajesYCamposDeTareas() {
         assertTrue(ValidadoresFormulario.codigoAlumnoValido("EST-000123"))
+        assertTrue(ValidadoresFormulario.codigoAlumnoValido("EST-550E8400-E29B-41D4-A716-446655440000"))
         assertFalse(ValidadoresFormulario.codigoAlumnoValido("PROF-000123"))
         assertTrue(ValidadoresFormulario.mensajeValido("Revisa el material de la próxima clase."))
         assertFalse(ValidadoresFormulario.mensajeValido(" "))
