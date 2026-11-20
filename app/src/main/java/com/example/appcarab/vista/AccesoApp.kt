@@ -87,7 +87,7 @@ fun AccesoApp(
                 rol = estado.rolUsuario,
                 estadoAula = estadoAula,
                 estadoTrivia = estadoTrivia,
-                onLoadTrivia = triviaViewModel::cargarPregunta,
+                onLoadTrivia = { triviaViewModel.cargarPregunta(estado.usuarioId) },
                 onAnswerTrivia = triviaViewModel::responder,
                 documentos = estadoDocumentos.documentos,
                 documentosCargando = estadoDocumentos.cargando,

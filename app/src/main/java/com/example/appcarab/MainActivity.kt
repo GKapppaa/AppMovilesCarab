@@ -6,19 +6,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appcarab.modelo.AppDatabase
 import com.example.appcarab.modelo.ApiRestRepository
+import com.example.appcarab.modelo.SincronizacionPendiente
 import com.example.appcarab.modelo.AulaRepository
 import com.example.appcarab.modelo.DocumentoRepository
 import com.example.appcarab.modelo.UsuarioRepository
-import com.example.appcarab.modelo.TriviaApiRepository
+import com.example.appcarab.modelo.TriviaPdfRepository
 import com.example.appcarab.ui.theme.AppCarabTheme
 import com.example.appcarab.vista.AccesoApp
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,10 +30,16 @@ class MainActivity : ComponentActivity() {
 
         val database = AppDatabase.getDatabase(applicationContext)
         val apiRepository = ApiRestRepository()
-        val repository = UsuarioRepository(database.usuarioDao(), apiRepository)
+        val sincronizacion = SincronizacionPendiente(
+            applicationContext,
+            database.pendienteSincronizacionDao(),
+            apiRepository,
+        )
+        lifecycleScope.launch { sincronizacion.programarSiHayPendientes() }
+        val repository = UsuarioRepository(database.usuarioDao(), sincronizacion)
         val documentRepository = DocumentoRepository(applicationContext, database.documentoDao())
-        val aulaRepository = AulaRepository(database.aulaDao(), database.usuarioDao(), apiRepository)
-        val triviaRepository = TriviaApiRepository()
+        val aulaRepository = AulaRepository(database.aulaDao(), database.usuarioDao(), sincronizacion)
+        val triviaRepository = TriviaPdfRepository(applicationContext, database.documentoDao())
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {

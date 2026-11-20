@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 
 class UsuarioRepository(
     private val usuarioDao: UsuarioDao,
-    private val api: ApiRestRepository,
+    private val sincronizacion: SincronizacionPendiente,
 ) {
 
     suspend fun registrarUsuario(nombre: String, email: String, password: String, role: String): Usuario? = withContext(Dispatchers.IO) {
@@ -30,7 +30,7 @@ class UsuarioRepository(
             val codigo = "$prefijo-${UUID.randomUUID().toString().uppercase()}"
             val creado = usuario.copy(id = id, codigoPerfil = codigo)
             usuarioDao.actualizar(creado)
-            api.sincronizar(
+            sincronizacion.sincronizar(
                 "perfiles",
                 creado.codigoPerfil,
                 """{"id":"${creado.codigoPerfil}","nombre":"${creado.nombre}","correo":"${creado.email}","rol":"${creado.role}"}""",
@@ -46,7 +46,7 @@ class UsuarioRepository(
         val old = usuarioDao.buscarPorId(usuarioId) ?: return@withContext null
         usuarioDao.actualizarPerfil(usuarioId, nombre.trim(), correoNormalizado)
         val actualizado = old.copy(nombre = nombre.trim(), email = correoNormalizado)
-        api.sincronizar(
+        sincronizacion.sincronizar(
             "perfiles",
             actualizado.codigoPerfil,
             """{"id":"${actualizado.codigoPerfil}","nombre":"${actualizado.nombre}","correo":"${actualizado.email}","rol":"${actualizado.role}"}""",

@@ -7,12 +7,12 @@ import org.json.JSONObject
 class AulaRepository(
     private val aulaDao: AulaDao,
     private val usuarioDao: UsuarioDao,
-    private val api: ApiRestRepository,
+    private val sincronizacion: SincronizacionPendiente,
 ) {
     suspend fun verificarApi(): String {
-        return api.health().fold(
+        return sincronizacion.verificarYReintentar().fold(
             onSuccess = { "API conectada: ${it.service}" },
-            onFailure = { "API no disponible; la app continúa en modo local." },
+            onFailure = { "API no disponible. Inicia el backend y vuelve a ejecutar Debug desde Android Studio para restablecer la conexión ADB. Los datos siguen guardándose localmente." },
         )
     }
 
@@ -25,7 +25,7 @@ class AulaRepository(
         val result = aulaDao.asignarAlumno(AlumnoProfesor(profesorId, alumno.id))
         if (result == -1L) "El estudiante ya pertenece a tu sección."
         else {
-            val remote = api.sincronizar("secciones", "$profesorId-${alumno.id}", JSONObject()
+            val remote = sincronizacion.sincronizar("secciones", "$profesorId-${alumno.id}", JSONObject()
                 .put("profesorId", profesorId).put("alumnoId", alumno.id).put("codigoAlumno", alumno.codigoPerfil).toString())
             "${alumno.nombre} agregado. ${remote.mensaje}"
         }
@@ -39,7 +39,7 @@ class AulaRepository(
         require(ValidadoresFormulario.mensajeValido(texto)) { "El mensaje debe tener entre 1 y 500 caracteres." }
         val mensaje = MensajeDocente(profesorId = profesorId, alumnoId = alumno.id, texto = texto.trim())
         val id = aulaDao.enviarMensaje(mensaje)
-        val remoto = api.sincronizar("mensajes", id.toString(), JSONObject()
+        val remoto = sincronizacion.sincronizar("mensajes", id.toString(), JSONObject()
             .put("profesorId", profesorId).put("alumnoId", alumno.id).put("texto", texto.trim()).toString())
         if (remoto.sincronizado) "Mensaje enviado y sincronizado." else "Mensaje guardado localmente. ${remoto.mensaje}"
     }
@@ -51,7 +51,7 @@ class AulaRepository(
         check(aulaDao.alumnoAsignado(profesorId, alumno.id)) { "Primero agrega al estudiante a tu sección." }
         check(aulaDao.documentoDelProfesor(documentoId, profesorId)) { "Solo puedes compartir un documento propio." }
         val id = aulaDao.compartirMaterial(MaterialCompartido(profesorId = profesorId, alumnoId = alumno.id, documentoId = documentoId))
-        val remoto = api.sincronizar("materiales", id.toString(), JSONObject()
+        val remoto = sincronizacion.sincronizar("materiales", id.toString(), JSONObject()
             .put("profesorId", profesorId).put("alumnoId", alumno.id).put("documentoId", documentoId).toString())
         if (remoto.sincronizado) "Material compartido y sincronizado." else "Material compartido localmente. ${remoto.mensaje}"
     }
@@ -65,7 +65,7 @@ class AulaRepository(
         require(ValidadoresFormulario.descripcionTareaValida(descripcion)) { "La descripción debe tener entre 5 y 1000 caracteres." }
         val tarea = TareaDocente(profesorId = profesorId, alumnoId = alumno.id, titulo = titulo.trim(), descripcion = descripcion.trim())
         val id = aulaDao.crearTarea(tarea)
-        val remoto = api.sincronizar("tareas", id.toString(), JSONObject()
+        val remoto = sincronizacion.sincronizar("tareas", id.toString(), JSONObject()
             .put("profesorId", profesorId).put("alumnoId", alumno.id)
             .put("titulo", titulo.trim()).put("descripcion", descripcion.trim()).toString())
         if (remoto.sincronizado) "Tarea asignada y sincronizada." else "Tarea guardada localmente. ${remoto.mensaje}"

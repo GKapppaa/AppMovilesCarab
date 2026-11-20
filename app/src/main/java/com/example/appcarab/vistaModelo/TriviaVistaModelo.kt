@@ -2,7 +2,7 @@ package com.example.appcarab.vistaModelo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.appcarab.modelo.TriviaApiRepository
+import com.example.appcarab.modelo.TriviaPdfRepository
 import com.example.appcarab.modelo.TriviaQuestion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,16 +16,19 @@ data class EstadoTrivia(
     val mensaje: String? = null,
 )
 
-class TriviaVistaModelo(private val repository: TriviaApiRepository) : ViewModel() {
+class TriviaVistaModelo(private val repository: TriviaPdfRepository) : ViewModel() {
     private val _estado = MutableStateFlow(EstadoTrivia())
     val estado: StateFlow<EstadoTrivia> = _estado.asStateFlow()
 
-    fun cargarPregunta() {
+    fun cargarPregunta(usuarioId: Int?) {
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null, respuestaElegida = null)
-            runCatching { repository.question() }
+            runCatching {
+                requireNotNull(usuarioId) { "Inicia sesión para usar la trivia de tus PDF." }
+                repository.question(usuarioId)
+            }
                 .onSuccess { _estado.value = EstadoTrivia(pregunta = it) }
-                .onFailure { _estado.value = EstadoTrivia(mensaje = it.message ?: "API externa no disponible. El contenido local sigue accesible.") }
+                .onFailure { _estado.value = EstadoTrivia(mensaje = it.message ?: "No se pudo generar una pregunta desde tus PDF.") }
         }
     }
 

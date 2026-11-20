@@ -24,6 +24,7 @@ data class Documento(
     val nombre: String,
     val archivoInterno: String,
     val resumen: String,
+    @ColumnInfo(defaultValue = "''") val textoExtraido: String = "",
     @ColumnInfo(defaultValue = "'General'") val categoria: String = "General",
     val creadoEn: Long = System.currentTimeMillis(),
 )

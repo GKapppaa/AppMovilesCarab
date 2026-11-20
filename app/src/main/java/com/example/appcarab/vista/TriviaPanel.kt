@@ -24,10 +24,14 @@ internal fun TriviaPanel(estado: EstadoTrivia, alCargar: () -> Unit, alResponder
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Práctica complementaria en línea", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text("Pregunta de trivia desde Open Trivia DB. Si no hay conexión, tus documentos locales siguen disponibles.", style = MaterialTheme.typography.bodySmall)
+            Text("Trivia de tus documentos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Las preguntas se crean en este dispositivo a partir del texto de tus PDF. El contenido no se envía a servicios externos; los escaneos necesitan OCR.",
+                style = MaterialTheme.typography.bodySmall,
+            )
             estado.pregunta?.let { pregunta ->
                 Text(pregunta.question, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text("Fuente: ${pregunta.sourceDocument}", style = MaterialTheme.typography.labelMedium)
                 pregunta.answers.forEach { answer ->
                     OutlinedButton(
                         onClick = { alResponder(answer) },
@@ -38,7 +42,7 @@ internal fun TriviaPanel(estado: EstadoTrivia, alCargar: () -> Unit, alResponder
             }
             estado.mensaje?.let { Text(it, color = if (it.startsWith("Respuesta correcta")) EsfocarGreen else MaterialTheme.colorScheme.error) }
             Button(onClick = alCargar, enabled = !estado.cargando, modifier = Modifier.fillMaxWidth()) {
-                Text(if (estado.cargando) "Buscando pregunta…" else if (estado.pregunta == null) "Obtener trivia" else "Otra pregunta")
+                Text(if (estado.cargando) "Creando pregunta…" else if (estado.pregunta == null) "Generar trivia desde PDF" else "Otra pregunta")
             }
         }
     }

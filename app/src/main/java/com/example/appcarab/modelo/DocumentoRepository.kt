@@ -70,12 +70,18 @@ class DocumentoRepository(
                 ?: error("No se pudo abrir el archivo seleccionado.")
             entrada.use { input -> destino.outputStream().use { output -> input.copyTo(output) } }
 
-            val resumen = extraerResumen(destino)
+            val texto = ExtractorTextoPdf.extraer(context, destino)
+            val resumen = if (texto.isBlank()) {
+                "No se detectó texto seleccionable. Si el PDF es escaneado, necesitaría OCR para resumirlo."
+            } else {
+                ResumenLocal.crear(texto)
+            }
             val documento = Documento(
                 usuarioId = usuarioId,
                 nombre = nombre,
                 archivoInterno = archivoInterno,
                 resumen = resumen,
+                textoExtraido = texto,
             )
             val id = documentoDao.insertar(documento).toInt()
             documento.copy(id = id)
@@ -106,20 +112,27 @@ class DocumentoRepository(
         return nombre?.takeIf { it.endsWith(".pdf", ignoreCase = true) } ?: "Material de estudio.pdf"
     }
 
-    private fun extraerResumen(file: File): String {
+}
+
+internal object ExtractorTextoPdf {
+    private const val MAX_PAGES_TO_SCAN = 20
+    private const val MAX_CHARS = 40_000
+
+    fun extraer(context: Context, file: File): String {
         PDFBoxResourceLoader.init(context)
         PDDocument.load(file).use { pdf ->
-            if (pdf.numberOfPages == 0) return "El archivo no contiene páginas para resumir."
+            if (pdf.numberOfPages == 0) return ""
             val extractor = PDFTextStripper().apply {
                 startPage = 1
                 endPage = minOf(pdf.numberOfPages, MAX_PAGES_TO_SCAN)
             }
-            return ResumenLocal.crear(extractor.getText(pdf))
+            return extractor.getText(pdf)
+                .replace("\r", "\n")
+                .replace(Regex("[\\t ]+"), " ")
+                .replace(Regex("\\n+"), ". ")
+                .trim()
+                .take(MAX_CHARS)
         }
-    }
-
-    private companion object {
-        const val MAX_PAGES_TO_SCAN = 8
     }
 }
 
