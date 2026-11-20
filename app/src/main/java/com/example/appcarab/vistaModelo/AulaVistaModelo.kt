@@ -46,8 +46,6 @@ class AulaVistaModelo(private val repo: AulaRepository, private val dao: AulaDao
     fun enviarMensaje(profesorId: Int, codigo: String, texto: String) = ejecutar { repo.enviarMensaje(profesorId, codigo, texto) }
     fun compartirMaterial(profesorId: Int, codigo: String, documentoId: Int) = ejecutar { repo.compartirMaterial(profesorId, codigo, documentoId) }
     fun asignarTarea(profesorId: Int, codigo: String, titulo: String, descripcion: String) = ejecutar { repo.asignarTarea(profesorId, codigo, titulo, descripcion) }
-    fun comprobarApi() = ejecutar { repo.verificarApi() }
-
     private fun ejecutar(accion: suspend () -> String) {
         viewModelScope.launch {
             runCatching { accion() }

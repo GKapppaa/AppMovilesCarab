@@ -29,14 +29,6 @@ class SincronizacionPendiente(
         return resultado
     }
 
-    suspend fun verificarYReintentar(): Result<ApiHealth> {
-        val resultado = api.health()
-        if (resultado.isSuccess && dao.cantidad() > 0) {
-            if (!procesarPendientes()) programarReintento()
-        }
-        return resultado
-    }
-
     suspend fun procesarPendientes(): Boolean {
         try {
             for (pendiente in dao.pendientes()) {

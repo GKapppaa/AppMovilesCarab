@@ -98,7 +98,6 @@ internal fun InicioEstudiante(
     onSendMessage: (String, String) -> Unit,
     onShareMaterial: (String, Int) -> Unit,
     onAssignTask: (String, String, String) -> Unit,
-    onCheckApi: () -> Unit,
     onEditProfile: () -> Unit,
     onLogout: () -> Unit,
 ) {
@@ -231,7 +230,6 @@ internal fun InicioEstudiante(
                         alEnviarMensaje = onSendMessage,
                         alCompartir = onShareMaterial,
                         alAsignarTarea = onAssignTask,
-                        alComprobarApi = onCheckApi,
                         alAbrirMaterial = onOpenDocument,
                     )
                 }

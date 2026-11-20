@@ -14,15 +14,11 @@ import retrofit2.http.Path
 import kotlinx.coroutines.CancellationException
 import java.util.concurrent.TimeUnit
 
-data class ApiHealth(val status: String, val service: String)
 data class RegistroApi(val id: Long, val tipo: String, val clave: String, val contenido: String)
 data class RegistroApiRequest(val clave: String, val contenido: String)
 data class ResultadoSync(val sincronizado: Boolean, val mensaje: String)
 
 interface EsfocarApi {
-    @GET("health")
-    suspend fun health(): ApiHealth
-
     @POST("{tipo}")
     suspend fun crear(@Path("tipo") tipo: String, @Body body: RegistroApiRequest): RegistroApi
 
@@ -58,8 +54,6 @@ class ApiRestRepository(
         .build()
         .create(EsfocarApi::class.java),
 ) {
-    suspend fun health(): Result<ApiHealth> = runCatching { api.health() }
-
     /** Sincronización best-effort: Room sigue siendo la fuente local si el backend no está disponible. */
     suspend fun sincronizar(tipo: String, clave: String, contenido: String): ResultadoSync {
         return try {

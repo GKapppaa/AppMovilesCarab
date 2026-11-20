@@ -121,7 +121,6 @@ fun AccesoApp(
                 onSendMessage = { codigo, texto -> estado.usuarioId?.let { aulaViewModel.enviarMensaje(it, codigo, texto) } },
                 onShareMaterial = { codigo, documentoId -> estado.usuarioId?.let { aulaViewModel.compartirMaterial(it, codigo, documentoId) } },
                 onAssignTask = { codigo, titulo, descripcion -> estado.usuarioId?.let { aulaViewModel.asignarTarea(it, codigo, titulo, descripcion) } },
-                onCheckApi = aulaViewModel::comprobarApi,
                 onEditProfile = { viewModel.irA(PantallaAcceso.EDITAR_PERFIL) },
                 onLogout = viewModel::cerrarSesion,
             )

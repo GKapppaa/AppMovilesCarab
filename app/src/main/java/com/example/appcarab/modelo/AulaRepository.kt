@@ -9,13 +9,6 @@ class AulaRepository(
     private val usuarioDao: UsuarioDao,
     private val sincronizacion: SincronizacionPendiente,
 ) {
-    suspend fun verificarApi(): String {
-        return sincronizacion.verificarYReintentar().fold(
-            onSuccess = { "API conectada: ${it.service}" },
-            onFailure = { "API no disponible. Inicia el backend y vuelve a ejecutar Debug desde Android Studio para restablecer la conexión ADB. Los datos siguen guardándose localmente." },
-        )
-    }
-
     suspend fun agregarAlumno(profesorId: Int, codigoAlumno: String): String = withContext(Dispatchers.IO) {
         check(usuarioDao.buscarPorId(profesorId)?.role == "PROFESOR") { "Esta acción es solo para perfiles de profesor." }
         require(ValidadoresFormulario.codigoAlumnoValido(codigoAlumno)) { "El ID debe tener formato EST-######." }
