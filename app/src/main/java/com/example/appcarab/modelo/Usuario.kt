@@ -1,30 +1,21 @@
 package com.example.appcarab.modelo
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-// Crea una tabla llamada "personas".
-@Entity(tableName = "usuario")
-data class Usuario (
-
-    // Identificador único autoincremental.
+@Entity(
+    tableName = "usuario",
+    indices = [Index(value = ["email"], unique = true), Index(value = ["codigoPerfil"], unique = true)],
+)
+data class Usuario(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-
-    // email de usuario
+    @ColumnInfo(defaultValue = "'Estudiante'") val nombre: String,
     val email: String,
-    // contraseña del usuario
-    val password: String,
-    // aqui se coloca el rol si es alumno o profesor
-    val role: String
+    @ColumnInfo(name = "password") val passwordHash: String,
+    val passwordSalt: String,
+    @ColumnInfo(defaultValue = "''") val codigoPerfil: String = "",
+    val role: String = "ESTUDIANTE"
 )
-
-/*
-    Equivale conceptualmente a crear esta tabla SQL:
-
-    CREATE TABLE personas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    edad INTEGER NOT NULL
-    );
-*/
