@@ -23,6 +23,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,15 +51,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
+internal fun Bienvenida(
+    reducirMovimiento: Boolean,
+    onLogin: () -> Unit,
+    onRegister: () -> Unit,
+    onSettings: () -> Unit,
+) {
     Box(Modifier.fillMaxSize()) {
-        FondoFotograficoAnimado()
+        FondoFotograficoAnimado(reducirMovimiento)
 
         Column(
             modifier = Modifier
@@ -62,7 +71,16 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
                 .padding(vertical = 10.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            LogoInstitucional()
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                LogoInstitucional()
+                Spacer(Modifier.weight(1f))
+                Surface(shape = CircleShape, color = Color(0x66001008)) {
+                    BotonConfiguracion(onSettings, tint = Color.White)
+                }
+            }
 
             Box(
                 Modifier
@@ -70,43 +88,51 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
                     .background(
                         Brush.verticalGradient(
                             0f to Color.Transparent,
-                            0.16f to Color(0x6600160A),
-                            1f to Color(0xAA001008),
+                            0.08f to Color(0x8800160A),
+                            1f to Color(0xCC001008),
                         ),
                     )
                     .padding(horizontal = 24.dp, vertical = 24.dp),
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier.widthIn(max = 560.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box(Modifier.width(28.dp).height(3.dp).background(EsfocarGold, RoundedCornerShape(50)))
+                        Text(
+                            stringResource(R.string.bienvenida_eyebrow).uppercase(),
+                            color = EsfocarGold,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                     Text(
-                        "Tu formación,\na tu alcance.",
+                        stringResource(R.string.bienvenida_titulo),
                         color = Color.White,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 36.sp,
+                        style = MaterialTheme.typography.displaySmall,
                     )
                     Text(
-                        "Estudia, repasa y organiza tu material de formación desde un solo lugar.",
-                        color = Color.White,
+                        stringResource(R.string.bienvenida_subtitulo),
+                        color = Color.White.copy(alpha = 0.92f),
                         style = MaterialTheme.typography.bodyLarge,
-                        lineHeight = 24.sp,
                     )
                     Spacer(Modifier.height(8.dp))
                     Button(
                         onClick = onLogin,
-                        modifier = Modifier.fillMaxWidth().height(54.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = EsfocarGreenDark),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        colors = ButtonDefaults.buttonColors(containerColor = EsfocarGreenDark, contentColor = Color.White),
                     ) {
-                        Text("Iniciar sesión", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.iniciar_sesion), style = MaterialTheme.typography.titleSmall)
                     }
                     OutlinedButton(
                         onClick = onRegister,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                        shape = MaterialTheme.shapes.medium,
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.66f)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                     ) {
-                        Text("Crear cuenta", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.crear_cuenta), style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
@@ -115,7 +141,7 @@ internal fun Bienvenida(onLogin: () -> Unit, onRegister: () -> Unit) {
 }
 
 @Composable
-private fun FondoFotograficoAnimado() {
+private fun FondoFotograficoAnimado(reducirMovimiento: Boolean) {
     val fotografias = remember {
         listOf(
             R.drawable.fondo_esfocar_01,
@@ -125,7 +151,7 @@ private fun FondoFotograficoAnimado() {
             R.drawable.fondo_esfocar_05,
         )
     }
-    val movimientoHabilitado = remember { ValueAnimator.areAnimatorsEnabled() }
+    val movimientoHabilitado = !reducirMovimiento && remember { ValueAnimator.areAnimatorsEnabled() }
     var indice by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(movimientoHabilitado) {
