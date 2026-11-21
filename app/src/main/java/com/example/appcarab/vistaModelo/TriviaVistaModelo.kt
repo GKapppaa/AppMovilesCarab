@@ -2,6 +2,8 @@ package com.example.appcarab.vistaModelo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appcarab.R
+import com.example.appcarab.modelo.Textos
 import com.example.appcarab.modelo.TriviaPdfRepository
 import com.example.appcarab.modelo.TriviaQuestion
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +18,10 @@ data class EstadoTrivia(
     val mensaje: String? = null,
 )
 
-class TriviaVistaModelo(private val repository: TriviaPdfRepository) : ViewModel() {
+class TriviaVistaModelo(
+    private val repository: TriviaPdfRepository,
+    private val textos: Textos,
+) : ViewModel() {
     private val _estado = MutableStateFlow(EstadoTrivia())
     val estado: StateFlow<EstadoTrivia> = _estado.asStateFlow()
 
@@ -24,11 +29,11 @@ class TriviaVistaModelo(private val repository: TriviaPdfRepository) : ViewModel
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null, respuestaElegida = null)
             runCatching {
-                requireNotNull(usuarioId) { "Inicia sesión para usar la trivia de tus PDF." }
+                requireNotNull(usuarioId) { textos.get(R.string.trivia_requiere_sesion) }
                 repository.question(usuarioId)
             }
                 .onSuccess { _estado.value = EstadoTrivia(pregunta = it) }
-                .onFailure { _estado.value = EstadoTrivia(mensaje = it.message ?: "No se pudo generar una pregunta desde tus PDF.") }
+                .onFailure { _estado.value = EstadoTrivia(mensaje = it.message ?: textos.get(R.string.trivia_error_generar)) }
         }
     }
 
@@ -36,7 +41,8 @@ class TriviaVistaModelo(private val repository: TriviaPdfRepository) : ViewModel
         val pregunta = _estado.value.pregunta ?: return
         _estado.value = _estado.value.copy(
             respuestaElegida = respuesta,
-            mensaje = if (respuesta == pregunta.correctAnswer) "Respuesta correcta." else "No es correcto. Intenta otra pregunta.",
+            mensaje = if (respuesta == pregunta.correctAnswer) textos.get(R.string.trivia_correcta)
+            else textos.get(R.string.trivia_incorrecta, pregunta.correctAnswer),
         )
     }
 }

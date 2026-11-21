@@ -2,7 +2,9 @@ package com.example.appcarab.vistaModelo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appcarab.R
 import com.example.appcarab.modelo.AulaDao
+import com.example.appcarab.modelo.Textos
 import com.example.appcarab.modelo.AulaRepository
 import com.example.appcarab.modelo.Documento
 import com.example.appcarab.modelo.MensajeDocente
@@ -24,7 +26,11 @@ data class EstadoAula(
     val error: Boolean = false,
 )
 
-class AulaVistaModelo(private val repo: AulaRepository, private val dao: AulaDao) : ViewModel() {
+class AulaVistaModelo(
+    private val repo: AulaRepository,
+    private val dao: AulaDao,
+    private val textos: Textos,
+) : ViewModel() {
     private val _estado = MutableStateFlow(EstadoAula())
     val estado: StateFlow<EstadoAula> = _estado.asStateFlow()
     private val jobs = mutableListOf<Job>()
@@ -50,7 +56,7 @@ class AulaVistaModelo(private val repo: AulaRepository, private val dao: AulaDao
         viewModelScope.launch {
             runCatching { accion() }
                 .onSuccess { _estado.value = _estado.value.copy(mensaje = it, error = false) }
-                .onFailure { _estado.value = _estado.value.copy(mensaje = it.message ?: "No se pudo completar la acción.", error = true) }
+                .onFailure { _estado.value = _estado.value.copy(mensaje = it.message ?: textos.get(R.string.aula_error_generico), error = true) }
         }
     }
 }

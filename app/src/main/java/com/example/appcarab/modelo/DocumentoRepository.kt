@@ -1,6 +1,7 @@
 package com.example.appcarab.modelo
 
 import android.content.Context
+import com.example.appcarab.R
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.graphics.pdf.PdfDocument
@@ -18,6 +19,7 @@ import kotlinx.coroutines.withContext
 class DocumentoRepository(
     private val context: Context,
     private val documentoDao: DocumentoDao,
+    private val textos: Textos = TextosAndroid(context),
 ) {
     fun uriTemporalEscaneo(usuarioId: Int): Uri {
         val carpeta = File(context.filesDir, "documentos/$usuarioId/escaneos").apply { mkdirs() }
@@ -30,7 +32,7 @@ class DocumentoRepository(
         archivoPdf.parentFile?.mkdirs()
         try {
             val bitmap = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
-                ?: error("La cámara no entregó una imagen legible.")
+                ?: error(textos.get(R.string.doc_error_camara))
             val pdf = PdfDocument()
             val page = pdf.startPage(PdfDocument.PageInfo.Builder(595, 842, 1).create())
             val ratio = minOf(555f / bitmap.width, 802f / bitmap.height)
@@ -67,7 +69,7 @@ class DocumentoRepository(
 
         try {
             val entrada = context.contentResolver.openInputStream(uri)
-                ?: error("No se pudo abrir el archivo seleccionado.")
+                ?: error(textos.get(R.string.doc_error_abrir_archivo))
             entrada.use { input -> destino.outputStream().use { output -> input.copyTo(output) } }
 
             val texto = ExtractorTextoPdf.extraer(context, destino)
