@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Assignment
@@ -40,15 +41,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
 import com.example.appcarab.modelo.Usuario
 import com.example.appcarab.modelo.ValidadoresFormulario
 import com.example.appcarab.vistaModelo.EstadoAula
 
-private enum class AccionDocente(val titulo: String) {
-    COMPARTIR("Compartir"),
-    MENSAJE("Mensaje"),
-    TAREA("Tarea"),
+private enum class AccionDocente(@StringRes val titulo: Int) {
+    COMPARTIR(R.string.accion_compartir),
+    MENSAJE(R.string.accion_mensaje),
+    TAREA(R.string.accion_tarea),
 }
 
 @Composable
@@ -76,6 +83,7 @@ internal fun AulaPanel(
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun PanelDocente(
     estado: EstadoAula,
@@ -104,8 +112,8 @@ private fun PanelDocente(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 EncabezadoAccion(
                     icono = Icons.Outlined.PersonAdd,
-                    titulo = "Vincula a tus estudiantes",
-                    descripcion = "Hazlo una vez. Después podrás compartir recursos y asignar trabajo sin volver a escribir su ID.",
+                    titulo = stringResource(R.string.vincular_titulo),
+                    descripcion = stringResource(R.string.vincular_desc),
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -115,12 +123,12 @@ private fun PanelDocente(
                         value = codigoAlumno,
                         onValueChange = { codigoAlumno = it.uppercase() },
                         modifier = Modifier.weight(1f),
-                        label = { Text("ID del alumno") },
+                        label = { Text(stringResource(R.string.campo_id_alumno)) },
                         placeholder = { Text("EST-…") },
                         singleLine = true,
                         isError = envioCodigoIntentado && !ValidadoresFormulario.codigoAlumnoValido(codigoAlumno),
                         supportingText = if (envioCodigoIntentado && !ValidadoresFormulario.codigoAlumnoValido(codigoAlumno)) {
-                            ({ ValidationHint("Usa el ID completo que aparece en su perfil.") })
+                            ({ ValidationHint(stringResource(R.string.error_id_alumno)) })
                         } else null,
                     )
                     Button(
@@ -132,38 +140,39 @@ private fun PanelDocente(
                                 envioCodigoIntentado = false
                             }
                         },
-                        modifier = Modifier.height(56.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.heightIn(min = 56.dp),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
-                        Text("Vincular")
+                        Text(stringResource(R.string.vincular))
                     }
                 }
 
                 if (estado.alumnos.isEmpty()) {
                     Text(
-                        "Aún no has vinculado estudiantes. Pide que te compartan su ID de perfil.",
+                        stringResource(R.string.sin_estudiantes),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 } else {
                     Text(
-                        "Estudiantes vinculados · ${estado.alumnos.size}",
+                        stringResource(R.string.estudiantes_vinculados, estado.alumnos.size),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Box {
                         OutlinedButton(
                             onClick = { menuAlumnosAbierto = true },
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
-                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                            shape = MaterialTheme.shapes.medium,
                         ) {
                             Text(
                                 alumnoSeleccionado?.let { "${it.nombre} · ${it.codigoPerfil}" }
-                                    ?: "Selecciona un estudiante",
+                                    ?: stringResource(R.string.selecciona_estudiante),
                                 modifier = Modifier.weight(1f),
                                 maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
-                            Text("Cambiar")
+                            Text(stringResource(R.string.cambiar), color = MaterialTheme.colorScheme.primary)
                         }
                         DropdownMenu(
                             expanded = menuAlumnosAbierto,
@@ -192,7 +201,7 @@ private fun PanelDocente(
         if (estado.alumnos.isEmpty()) {
             CardAula {
                 Text(
-                    "Cuando vincules un estudiante, aquí podrás compartirle material, enviarle mensajes y asignarle tareas.",
+                    stringResource(R.string.aula_sin_vinculos_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -201,16 +210,20 @@ private fun PanelDocente(
             CardAula {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text(
-                        "Acciones para ${alumnoSeleccionado.nombre}",
+                        stringResource(R.string.acciones_para, alumnoSeleccionado.nombre),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         AccionDocente.entries.forEach { item ->
                             FilterChip(
                                 selected = accion == item,
                                 onClick = { accionSeleccionada = item.name },
-                                label = { Text(item.titulo) },
+                                label = { Text(stringResource(item.titulo)) },
+                                colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                ),
                             )
                         }
                     }
@@ -251,13 +264,13 @@ private fun CompartirConAlumno(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
-            "Elige un PDF para compartir con ${alumno.nombre}.",
+            stringResource(R.string.compartir_elige, alumno.nombre),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (documentos.isEmpty()) {
             Text(
-                "Primero carga un PDF desde Material.",
+                stringResource(R.string.compartir_sin_pdf),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -281,12 +294,12 @@ private fun CompartirConAlumno(
                     )
                     Button(
                         onClick = { onShare(documento.id) },
-                        modifier = Modifier.height(48.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.heightIn(min = 48.dp),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         androidx.compose.material3.Icon(Icons.Outlined.Share, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
-                        Text("Compartir")
+                        Text(stringResource(R.string.accion_compartir))
                     }
                 }
             }
@@ -301,17 +314,17 @@ private fun MensajeParaAlumno(onSend: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         EncabezadoAccion(
             icono = Icons.Outlined.ChatBubbleOutline,
-            titulo = "Enviar un mensaje",
-            descripcion = "El destinatario ya está seleccionado.",
+            titulo = stringResource(R.string.mensaje_titulo),
+            descripcion = stringResource(R.string.mensaje_desc),
         )
         OutlinedTextField(
             value = mensaje,
             onValueChange = { mensaje = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Mensaje") },
+            label = { Text(stringResource(R.string.campo_mensaje)) },
             isError = envioIntentado && !ValidadoresFormulario.mensajeValido(mensaje),
             supportingText = if (envioIntentado && !ValidadoresFormulario.mensajeValido(mensaje)) {
-                ({ ValidationHint("Escribe un mensaje de hasta 500 caracteres.") })
+                ({ ValidationHint(stringResource(R.string.error_mensaje)) })
             } else null,
         )
         Button(
@@ -323,10 +336,10 @@ private fun MensajeParaAlumno(onSend: (String) -> Unit) {
                     envioIntentado = false
                 }
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
+            shape = MaterialTheme.shapes.medium,
         ) {
-            Text("Enviar mensaje")
+            Text(stringResource(R.string.enviar_mensaje))
         }
     }
 }
@@ -339,28 +352,28 @@ private fun TareaParaAlumno(onAssign: (String, String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         EncabezadoAccion(
             icono = Icons.AutoMirrored.Outlined.Assignment,
-            titulo = "Nueva tarea",
-            descripcion = "Se asignará al estudiante seleccionado.",
+            titulo = stringResource(R.string.tarea_titulo),
+            descripcion = stringResource(R.string.tarea_desc),
         )
         OutlinedTextField(
             value = titulo,
             onValueChange = { titulo = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Título") },
+            label = { Text(stringResource(R.string.campo_titulo)) },
             singleLine = true,
             isError = envioIntentado && !ValidadoresFormulario.tituloTareaValido(titulo),
             supportingText = if (envioIntentado && !ValidadoresFormulario.tituloTareaValido(titulo)) {
-                ({ ValidationHint("Usa entre 3 y 80 caracteres.") })
+                ({ ValidationHint(stringResource(R.string.error_titulo)) })
             } else null,
         )
         OutlinedTextField(
             value = descripcion,
             onValueChange = { descripcion = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Instrucciones") },
+            label = { Text(stringResource(R.string.campo_instrucciones)) },
             isError = envioIntentado && !ValidadoresFormulario.descripcionTareaValida(descripcion),
             supportingText = if (envioIntentado && !ValidadoresFormulario.descripcionTareaValida(descripcion)) {
-                ({ ValidationHint("Usa entre 5 y 1000 caracteres.") })
+                ({ ValidationHint(stringResource(R.string.error_instrucciones)) })
             } else null,
         )
         Button(
@@ -375,10 +388,10 @@ private fun TareaParaAlumno(onAssign: (String, String) -> Unit) {
                     envioIntentado = false
                 }
             },
-            modifier = Modifier.fillMaxWidth().height(50.dp),
-            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
+            shape = MaterialTheme.shapes.medium,
         ) {
-            Text("Asignar tarea")
+            Text(stringResource(R.string.asignar_tarea))
         }
     }
 }
@@ -387,9 +400,9 @@ private fun TareaParaAlumno(onAssign: (String, String) -> Unit) {
 private fun PanelEstudiante(estado: EstadoAula, alAbrirMaterial: (Documento) -> Unit) {
     CardAula {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Mensajes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.est_mensajes), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             if (estado.mensajes.isEmpty()) {
-                Text("No tienes mensajes nuevos.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.est_sin_mensajes), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 estado.mensajes.forEach { mensaje ->
                     TarjetaAulaEstudiante { Text(mensaje.texto, style = MaterialTheme.typography.bodyMedium) }
@@ -397,9 +410,9 @@ private fun PanelEstudiante(estado: EstadoAula, alAbrirMaterial: (Documento) -> 
             }
 
             Spacer(Modifier.height(4.dp))
-            Text("Tareas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.est_tareas), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             if (estado.tareas.isEmpty()) {
-                Text("No tienes tareas asignadas.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.est_sin_tareas), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 estado.tareas.forEach { tarea ->
                     TarjetaAulaEstudiante {
@@ -412,15 +425,20 @@ private fun PanelEstudiante(estado: EstadoAula, alAbrirMaterial: (Documento) -> 
             }
 
             Spacer(Modifier.height(4.dp))
-            Text("Material compartido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.est_material), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             if (estado.materiales.isEmpty()) {
-                Text("Aún no te han compartido material.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.est_sin_material), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 estado.materiales.forEach { documento ->
-                    TextButton(
+                    OutlinedButton(
                         onClick = { alAbrirMaterial(documento) },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                    ) { Text("Abrir ${documento.nombre}") }
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
+                        androidx.compose.material3.Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(documento.nombre, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }
@@ -431,9 +449,9 @@ private fun PanelEstudiante(estado: EstadoAula, alAbrirMaterial: (Documento) -> 
 private fun CardAula(content: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = { content() })
     }
@@ -443,7 +461,7 @@ private fun CardAula(content: @Composable () -> Unit) {
 private fun TarjetaAulaEstudiante(content: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Column(Modifier.padding(14.dp), content = { content() })
@@ -456,13 +474,9 @@ private fun EncabezadoAccion(
     titulo: String,
     descripcion: String,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        androidx.compose.material3.Icon(
-            icono,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconoEnCaja(icono, tamano = 40.dp)
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             Text(descripcion, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
