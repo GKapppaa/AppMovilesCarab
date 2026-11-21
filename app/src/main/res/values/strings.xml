@@ -1,3 +1,241 @@
-<resources>
-    <string name="app_name">AppCarab</string>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="es">
+    <string name="app_name" translatable="false">AppCarab</string>
+
+    <!-- General -->
+    <string name="logo_desc">Logo oficial de la Escuela de Formación de Carabineros de Chile</string>
+    <string name="accion_volver">Volver</string>
+    <string name="accion_configuracion">Configuración</string>
+    <string name="accion_cancelar">Cancelar</string>
+    <string name="accion_eliminar">Eliminar</string>
+
+    <!-- Bienvenida -->
+    <string name="bienvenida_eyebrow">Escuela de Formación de Carabineros</string>
+    <string name="bienvenida_titulo">Tu formación,\na tu alcance.</string>
+    <string name="bienvenida_subtitulo">Estudia, repasa y organiza tu material de formación desde un solo lugar.</string>
+    <string name="iniciar_sesion">Iniciar sesión</string>
+    <string name="crear_cuenta">Crear cuenta</string>
+
+    <!-- Formularios de acceso -->
+    <string name="sesion_titulo">Bienvenido</string>
+    <string name="sesion_subtitulo">Ingresa con tu cuenta de estudiante o profesor.</string>
+    <string name="campo_correo">Correo electrónico</string>
+    <string name="error_correo">Ingresa un correo válido.</string>
+    <string name="campo_contrasena">Contraseña</string>
+    <string name="error_contrasena_vacia">Ingresa tu contraseña.</string>
+    <string name="sesion_verificando">Verificando…</string>
+    <string name="sesion_ingresar">Ingresar</string>
+    <string name="sesion_sin_cuenta">¿Aún no tienes cuenta?</string>
+    <string name="sesion_registrate">Regístrate</string>
+    <string name="registro_subtitulo">Crea tu perfil de formación.</string>
+    <string name="campo_nombre_prueba">Nombre y apellido (usa datos de prueba)</string>
+    <string name="error_nombre">Usa 2 a 5 nombres; solo letras, tildes, espacios o guiones.</string>
+    <string name="registro_tipo_perfil">Tipo de perfil</string>
+    <string name="rol_estudiante">Estudiante</string>
+    <string name="rol_profesor">Profesor</string>
+    <string name="campo_codigo_docente">Código de invitación docente</string>
+    <string name="error_codigo_docente">Ingresa el código de invitación entregado por el equipo docente.</string>
+    <string name="error_contrasena_reglas">Usa 8–64 caracteres e incluye mayúscula, minúscula, número y símbolo; sin espacios.</string>
+    <string name="campo_confirmar_contrasena">Confirmar contraseña</string>
+    <string name="error_contrasenas_distintas">Las contraseñas no coinciden.</string>
+    <string name="registro_creando">Creando cuenta…</string>
+    <string name="registro_con_cuenta">¿Ya tienes una cuenta?</string>
+    <string name="registro_inicia_sesion">Inicia sesión</string>
+    <string name="perfil_titulo">Editar perfil</string>
+    <string name="perfil_subtitulo">Actualiza tu nombre de perfil y correo.</string>
+    <string name="campo_nombre">Nombre y apellido</string>
+    <string name="perfil_guardando">Guardando…</string>
+    <string name="perfil_guardar">Guardar cambios</string>
+    <string name="contrasena_mostrar">Mostrar</string>
+    <string name="contrasena_ocultar">Ocultar</string>
+    <string name="validacion_error_desc">Error de validación</string>
+
+    <!-- Mensajes de sesión -->
+    <string name="vm_revisa_correo_contrasena">Revisa el correo y la contraseña.</string>
+    <string name="vm_credenciales_incorrectas">Correo o contraseña incorrectos.</string>
+    <string name="vm_error_inicio">No se pudo iniciar sesión. Intenta nuevamente.</string>
+    <string name="vm_codigo_docente_invalido">El código de invitación de profesor no es válido.</string>
+    <string name="vm_revisa_datos">Revisa los datos ingresados.</string>
+    <string name="vm_correo_existente">Ya existe una cuenta con ese correo.</string>
+    <string name="vm_error_registro">No se pudo crear la cuenta. Intenta nuevamente.</string>
+    <string name="vm_revisa_nombre_correo">Revisa el nombre y el correo.</string>
+    <string name="vm_correo_en_uso">Ese correo ya está asociado a otra cuenta.</string>
+    <string name="vm_error_perfil">No se pudo guardar el perfil.</string>
+
+    <!-- Documentos -->
+    <string name="doc_agregado">PDF agregado y resumido en el dispositivo.</string>
+    <string name="doc_error_procesar">No se pudo procesar el PDF.</string>
+    <string name="doc_escaneo_guardado">Escaneo guardado como PDF.</string>
+    <string name="doc_error_escaneo">No se pudo guardar el escaneo.</string>
+    <string name="doc_eliminado">Documento eliminado.</string>
+    <string name="doc_error_eliminar">No se pudo eliminar el documento.</string>
+    <string name="doc_error_camara">La cámara no entregó una imagen legible.</string>
+    <string name="doc_error_abrir_archivo">No se pudo abrir el archivo seleccionado.</string>
+    <string name="archivo_no_encontrado">No se encontró el archivo guardado.</string>
+    <string name="abrir_pdf_selector">Abrir PDF</string>
+    <string name="sin_app_pdf">No hay una aplicación disponible para abrir PDF.</string>
+
+    <!-- Aula: resultados -->
+    <string name="aula_error_generico">No se pudo completar la acción.</string>
+    <string name="aula_solo_profesor">Esta acción es solo para perfiles de profesor.</string>
+    <string name="aula_formato_id">El ID debe tener el formato EST- que aparece en el perfil del estudiante.</string>
+    <string name="aula_estudiante_no_existe">No existe un estudiante con ese ID.</string>
+    <string name="aula_no_autoasignar">No puedes asignarte a tu propia sección.</string>
+    <string name="aula_ya_vinculado">El estudiante ya pertenece a tu sección.</string>
+    <string name="aula_alumno_agregado">%1$s agregado.</string>
+    <string name="aula_primero_vincular">Primero agrega al estudiante a tu sección.</string>
+    <string name="aula_mensaje_largo">El mensaje debe tener entre 1 y 500 caracteres.</string>
+    <string name="aula_solo_documento_propio">Solo puedes compartir un documento propio.</string>
+    <string name="aula_titulo_largo">El título debe tener entre 3 y 80 caracteres.</string>
+    <string name="aula_descripcion_larga">La descripción debe tener entre 5 y 1000 caracteres.</string>
+    <string name="aula_mensaje_enviado">Mensaje enviado.</string>
+    <string name="aula_material_compartido">Material compartido.</string>
+    <string name="aula_tarea_asignada">Tarea asignada.</string>
+    <string name="sync_remoto">Sincronizado con el servicio remoto.</string>
+    <string name="sync_pendiente">Guardado localmente; se sincronizará al volver la conexión.</string>
+
+    <!-- Trivia -->
+    <string name="trivia_requiere_sesion">Inicia sesión para usar la trivia de tus PDF.</string>
+    <string name="trivia_error_generar">No se pudo generar una pregunta desde tus PDF.</string>
+    <string name="trivia_sin_texto">Carga un PDF con texto seleccionable para crear preguntas. Los escaneos necesitan OCR.</string>
+    <string name="trivia_correcta">¡Respuesta correcta!</string>
+    <string name="trivia_incorrecta">No es correcto. La respuesta era «%1$s».</string>
+    <string name="trivia_titulo">Trivia de tus documentos</string>
+    <string name="trivia_desc">Las preguntas se crean en este dispositivo a partir del texto de tus PDF. El contenido no se envía a servicios externos; los escaneos necesitan OCR.</string>
+    <string name="trivia_fuente">Fuente: %1$s</string>
+    <string name="trivia_creando">Creando pregunta…</string>
+    <string name="trivia_generar">Generar trivia desde PDF</string>
+    <string name="trivia_otra">Otra pregunta</string>
+
+    <!-- Navegación y cabecera -->
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_aula">Aula</string>
+    <string name="nav_material">Material</string>
+    <string name="nav_repaso">Repaso</string>
+    <string name="menu_perfil_desc">Abrir menú de perfil</string>
+    <string name="menu_editar_perfil">Editar perfil</string>
+    <string name="menu_cerrar_sesion">Cerrar sesión</string>
+    <string name="perfil_id">ID: %1$s</string>
+
+    <!-- Secciones -->
+    <string name="aula_titulo_profesor">Tu aula</string>
+    <string name="aula_titulo_estudiante">Mi aula</string>
+    <string name="aula_desc_profesor">Organiza el acompañamiento y comparte información con tus estudiantes.</string>
+    <string name="aula_desc_estudiante">Revisa las novedades, tareas y material compartido por tu profesor.</string>
+    <string name="material_titulo">Material de estudio</string>
+    <string name="material_desc">Tus documentos se guardan en este dispositivo y están disponibles sin conexión.</string>
+    <string name="material_vacio_titulo">Aún no hay documentos</string>
+    <string name="material_vacio_desc">Carga un PDF para crear tu biblioteca de estudio.</string>
+    <string name="material_mis_documentos">Mis documentos · %1$d</string>
+    <string name="repaso_titulo">Repasa tus contenidos</string>
+    <string name="repaso_desc">Genera preguntas a partir del texto de los PDF que has cargado.</string>
+    <string name="eliminar_titulo">Eliminar documento</string>
+    <string name="eliminar_confirmar">¿Quieres eliminar «%1$s» de este dispositivo?</string>
+
+    <!-- Inicio -->
+    <string name="inicio_eyebrow_profesor">Panel docente</string>
+    <string name="inicio_eyebrow_estudiante">Tu espacio de formación</string>
+    <string name="inicio_saludo">Hola, %1$s</string>
+    <string name="inicio_pregunta">¿Qué te gustaría hacer hoy?</string>
+    <string name="hero_pill">Aprendizaje a tu ritmo</string>
+    <string name="hero_titulo">Todo tu material, en un solo lugar.</string>
+    <string name="hero_desc">Estudia tus PDF, revisa el aula y practica con preguntas basadas en tus documentos.</string>
+    <string name="hero_cta">Ir a mis materiales</string>
+    <string name="contador_estudiantes">Estudiantes</string>
+    <string name="contador_mensajes">Mensajes</string>
+    <string name="contador_tareas">Tareas</string>
+    <string name="contador_pdf">PDF</string>
+    <string name="accesos_rapidos">Accesos rápidos</string>
+    <string name="acceso_aula_desc_profesor">Estudiantes y comunicación</string>
+    <string name="acceso_aula_desc_estudiante">Mensajes y tareas</string>
+    <string name="acceso_repasar">Repasar</string>
+    <string name="acceso_repasar_desc">Preguntas desde tus PDF</string>
+    <string name="ultimos_documentos">Últimos documentos</string>
+    <string name="documento_desc">PDF · %1$s</string>
+
+    <!-- Material -->
+    <string name="biblioteca_titulo">Biblioteca personal</string>
+    <plurals name="biblioteca_conteo">
+        <item quantity="one">%d documento guardado</item>
+        <item quantity="other">%d documentos guardados</item>
+    </plurals>
+    <string name="material_procesando">Procesando PDF…</string>
+    <string name="material_cargar">Cargar documento PDF</string>
+    <string name="material_escanear">Escanear con cámara</string>
+    <string name="documento_carpeta">Carpeta: %1$s</string>
+    <string name="categoria_general">General</string>
+    <string name="categoria_clases">Clases</string>
+    <string name="categoria_normativa">Normativa</string>
+    <string name="categoria_tareas">Tareas</string>
+    <string name="categoria_escaneos">Escaneos</string>
+    <string name="documento_resumen">Resumen del documento</string>
+    <string name="ver_menos">Ver menos</string>
+    <string name="ver_resumen">Ver resumen</string>
+    <string name="abrir_pdf">Abrir PDF</string>
+    <string name="eliminar_documento_desc">Eliminar %1$s</string>
+
+    <!-- Aula -->
+    <string name="accion_compartir">Compartir</string>
+    <string name="accion_mensaje">Mensaje</string>
+    <string name="accion_tarea">Tarea</string>
+    <string name="vincular_titulo">Vincula a tus estudiantes</string>
+    <string name="vincular_desc">Hazlo una vez. Después podrás compartir recursos y asignar trabajo sin volver a escribir su ID.</string>
+    <string name="campo_id_alumno">ID del alumno</string>
+    <string name="error_id_alumno">Usa el ID completo que aparece en su perfil.</string>
+    <string name="vincular">Vincular</string>
+    <string name="sin_estudiantes">Aún no has vinculado estudiantes. Pide que te compartan su ID de perfil.</string>
+    <string name="estudiantes_vinculados">Estudiantes vinculados · %1$d</string>
+    <string name="selecciona_estudiante">Selecciona un estudiante</string>
+    <string name="cambiar">Cambiar</string>
+    <string name="aula_sin_vinculos_desc">Cuando vincules un estudiante, aquí podrás compartirle material, enviarle mensajes y asignarle tareas.</string>
+    <string name="acciones_para">Acciones para %1$s</string>
+    <string name="compartir_elige">Elige un PDF para compartir con %1$s.</string>
+    <string name="compartir_sin_pdf">Primero carga un PDF desde Material.</string>
+    <string name="mensaje_titulo">Enviar un mensaje</string>
+    <string name="mensaje_desc">El destinatario ya está seleccionado.</string>
+    <string name="campo_mensaje">Mensaje</string>
+    <string name="error_mensaje">Escribe un mensaje de hasta 500 caracteres.</string>
+    <string name="enviar_mensaje">Enviar mensaje</string>
+    <string name="tarea_titulo">Nueva tarea</string>
+    <string name="tarea_desc">Se asignará al estudiante seleccionado.</string>
+    <string name="campo_titulo">Título</string>
+    <string name="error_titulo">Usa entre 3 y 80 caracteres.</string>
+    <string name="campo_instrucciones">Instrucciones</string>
+    <string name="error_instrucciones">Usa entre 5 y 1000 caracteres.</string>
+    <string name="asignar_tarea">Asignar tarea</string>
+    <string name="est_mensajes">Mensajes</string>
+    <string name="est_sin_mensajes">No tienes mensajes nuevos.</string>
+    <string name="est_tareas">Tareas</string>
+    <string name="est_sin_tareas">No tienes tareas asignadas.</string>
+    <string name="est_material">Material compartido</string>
+    <string name="est_sin_material">Aún no te han compartido material.</string>
+
+    <!-- Configuración -->
+    <string name="config_subtitulo">Personaliza la app a tu manera. Los cambios se aplican al instante.</string>
+    <string name="config_apariencia">Apariencia</string>
+    <string name="config_tema">Tema</string>
+    <string name="tema_sistema">Sistema</string>
+    <string name="tema_claro">Claro</string>
+    <string name="tema_oscuro">Oscuro</string>
+    <string name="config_texto">Tamaño del texto</string>
+    <string name="texto_estandar">Estándar</string>
+    <string name="texto_grande">Grande</string>
+    <string name="texto_muy_grande">Muy grande</string>
+    <string name="config_texto_vista_previa">Así se verán los textos de la app.</string>
+    <string name="config_idioma">Idioma</string>
+    <string name="idioma_sistema">Idioma del sistema</string>
+    <string name="idioma_es" translatable="false">Español</string>
+    <string name="idioma_en" translatable="false">English</string>
+    <string name="config_idioma_desc">También puedes cambiarlo en Ajustes de Android › Apps › AppCarab › Idioma. Los resúmenes y preguntas conservan el idioma de cada PDF.</string>
+    <string name="config_accesibilidad">Accesibilidad</string>
+    <string name="config_movimiento">Reducir animaciones</string>
+    <string name="config_movimiento_desc">Detiene el carrusel de fotos de la pantalla de bienvenida.</string>
+    <string name="config_privacidad">Datos y privacidad</string>
+    <string name="config_datos_locales">Tus datos se guardan en este dispositivo</string>
+    <string name="config_datos_locales_desc">Los PDF y perfiles se almacenan localmente. Al servidor de la demo solo se envían registros del aula, nunca el contenido de los PDF.</string>
+    <string name="config_acerca">Acerca de</string>
+    <string name="config_version">Versión %1$s</string>
+    <string name="config_aviso">MVP académico de DSY1105. No es un producto oficial de Carabineros de Chile, ESFOCAR ni Duoc UC.</string>
+    <string name="config_restablecer">Restablecer ajustes</string>
+    <string name="config_restablecer_desc">Vuelve al tema, tamaño de texto y animaciones predeterminados.</string>
+    <string name="config_restablecido">Ajustes restablecidos.</string>
 </resources>
