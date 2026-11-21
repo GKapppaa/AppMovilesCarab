@@ -3,6 +3,8 @@ package com.example.appcarab.vistaModelo
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appcarab.R
+import com.example.appcarab.modelo.Textos
 import com.example.appcarab.modelo.UsuarioRepository
 import com.example.appcarab.modelo.ValidadoresFormulario
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +25,10 @@ data class EstadoAcceso(
     val rolUsuario: String = "ESTUDIANTE",
 )
 
-class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewModel() {
+class InicioSesionVistaModelo(
+    private val repository: UsuarioRepository,
+    private val textos: Textos,
+) : ViewModel() {
     private val _estado = MutableStateFlow(EstadoAcceso())
     val estado: StateFlow<EstadoAcceso> = _estado.asStateFlow()
 
@@ -33,7 +38,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
 
     fun iniciarSesion(email: String, password: String) {
         if (!ValidadoresFormulario.correoValido(email) || password.isBlank()) {
-            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.INICIAR_SESION, mensaje = "Revisa el correo y la contraseña.")
+            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.INICIAR_SESION, mensaje = textos.get(R.string.vm_revisa_correo_contrasena))
             return
         }
         viewModelScope.launch {
@@ -43,7 +48,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                     _estado.value = _estado.value.copy(
                         pantalla = if (usuario == null) PantallaAcceso.INICIAR_SESION else PantallaAcceso.INICIO,
                         cargando = false,
-                        mensaje = if (usuario == null) "Correo o contraseña incorrectos." else null,
+                        mensaje = if (usuario == null) textos.get(R.string.vm_credenciales_incorrectas) else null,
                         correoUsuario = usuario?.email,
                         usuarioId = usuario?.id,
                         nombreUsuario = usuario?.nombre.orEmpty(),
@@ -53,7 +58,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                 }
                 .onFailure { error ->
                     Log.e(TAG, "Falló el inicio de sesión", error)
-                    _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo iniciar sesión. Intenta nuevamente.")
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = textos.get(R.string.vm_error_inicio))
                 }
         }
     }
@@ -66,8 +71,8 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
             (role == "PROFESOR" && !ValidadoresFormulario.codigoProfesorValido(codigoProfesor))
         ) {
             val mensaje = if (role == "PROFESOR" && !ValidadoresFormulario.codigoProfesorValido(codigoProfesor)) {
-                "El código de invitación de profesor no es válido."
-            } else "Revisa los datos ingresados."
+                textos.get(R.string.vm_codigo_docente_invalido)
+            } else textos.get(R.string.vm_revisa_datos)
             _estado.value = _estado.value.copy(pantalla = PantallaAcceso.REGISTRO, mensaje = mensaje)
             return
         }
@@ -78,7 +83,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                     _estado.value = _estado.value.copy(
                         pantalla = if (usuario != null) PantallaAcceso.INICIO else PantallaAcceso.REGISTRO,
                         cargando = false,
-                        mensaje = if (usuario != null) null else "Ya existe una cuenta con ese correo.",
+                        mensaje = if (usuario != null) null else textos.get(R.string.vm_correo_existente),
                         correoUsuario = usuario?.email,
                         usuarioId = usuario?.id,
                         nombreUsuario = usuario?.nombre.orEmpty(),
@@ -88,7 +93,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                 }
                 .onFailure { error ->
                     Log.e(TAG, "Falló el registro de usuario", error)
-                    _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo crear la cuenta. Intenta nuevamente.")
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = textos.get(R.string.vm_error_registro))
                 }
         }
     }
@@ -96,7 +101,7 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
     fun guardarPerfil(nombre: String, email: String) {
         val usuarioId = _estado.value.usuarioId ?: return
         if (!ValidadoresFormulario.nombreValido(nombre) || !ValidadoresFormulario.correoValido(email)) {
-            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.EDITAR_PERFIL, mensaje = "Revisa el nombre y el correo.")
+            _estado.value = _estado.value.copy(pantalla = PantallaAcceso.EDITAR_PERFIL, mensaje = textos.get(R.string.vm_revisa_nombre_correo))
             return
         }
         viewModelScope.launch {
@@ -106,14 +111,14 @@ class InicioSesionVistaModelo(private val repository: UsuarioRepository) : ViewM
                     _estado.value = _estado.value.copy(
                         pantalla = if (usuario == null) PantallaAcceso.EDITAR_PERFIL else PantallaAcceso.INICIO,
                         cargando = false,
-                        mensaje = if (usuario == null) "Ese correo ya está asociado a otra cuenta." else null,
+                        mensaje = if (usuario == null) textos.get(R.string.vm_correo_en_uso) else null,
                         correoUsuario = usuario?.email ?: _estado.value.correoUsuario,
                         nombreUsuario = usuario?.nombre ?: _estado.value.nombreUsuario,
                     )
                 }
                 .onFailure { error ->
                     Log.e(TAG, "Falló la actualización del perfil", error)
-                    _estado.value = _estado.value.copy(cargando = false, mensaje = "No se pudo guardar el perfil.")
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = textos.get(R.string.vm_error_perfil))
                 }
         }
     }

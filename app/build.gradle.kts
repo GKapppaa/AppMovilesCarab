@@ -41,6 +41,12 @@ android {
         compose = true
         buildConfig = true
     }
+    // El idioma se elige dentro de la app: el bundle debe incluir todas las traducciones.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
 }
 
 dependencies {

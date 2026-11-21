@@ -3,7 +3,9 @@ package com.example.appcarab.vistaModelo
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
+import com.example.appcarab.modelo.Textos
 import com.example.appcarab.modelo.DocumentoDao
 import com.example.appcarab.modelo.DocumentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +22,11 @@ data class EstadoDocumentos(
     val mensajeEsError: Boolean = false,
 )
 
-class DocumentosVistaModelo(private val repository: DocumentoRepository, private val dao: DocumentoDao) : ViewModel() {
+class DocumentosVistaModelo(
+    private val repository: DocumentoRepository,
+    private val dao: DocumentoDao,
+    private val textos: Textos,
+) : ViewModel() {
     private val _estado = MutableStateFlow(EstadoDocumentos())
     val estado: StateFlow<EstadoDocumentos> = _estado.asStateFlow()
     private var usuarioObservado: Int? = null
@@ -45,14 +51,14 @@ class DocumentosVistaModelo(private val repository: DocumentoRepository, private
                 .onSuccess {
                     _estado.value = _estado.value.copy(
                         cargando = false,
-                        mensaje = "PDF agregado y resumido en el dispositivo.",
+                        mensaje = textos.get(R.string.doc_agregado),
                         mensajeEsError = false,
                     )
                 }
                 .onFailure {
                     _estado.value = _estado.value.copy(
                         cargando = false,
-                        mensaje = it.message ?: "No se pudo procesar el PDF.",
+                        mensaje = it.message ?: textos.get(R.string.doc_error_procesar),
                         mensajeEsError = true,
                     )
                 }
@@ -65,9 +71,9 @@ class DocumentosVistaModelo(private val repository: DocumentoRepository, private
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
             runCatching { repository.agregarEscaneo(usuarioId, uri) }
-                .onSuccess { _estado.value = _estado.value.copy(cargando = false, mensaje = "Escaneo guardado como PDF.") }
+                .onSuccess { _estado.value = _estado.value.copy(cargando = false, mensaje = textos.get(R.string.doc_escaneo_guardado), mensajeEsError = false) }
                 .onFailure {
-                    _estado.value = _estado.value.copy(cargando = false, mensaje = it.message ?: "No se pudo guardar el escaneo.", mensajeEsError = true)
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = it.message ?: textos.get(R.string.doc_error_escaneo), mensajeEsError = true)
                 }
         }
     }
@@ -75,8 +81,8 @@ class DocumentosVistaModelo(private val repository: DocumentoRepository, private
     fun eliminar(documento: Documento) {
         viewModelScope.launch {
             runCatching { repository.eliminar(documento) }
-                .onSuccess { _estado.value = _estado.value.copy(mensaje = "Documento eliminado.", mensajeEsError = false) }
-                .onFailure { _estado.value = _estado.value.copy(mensaje = "No se pudo eliminar el documento.", mensajeEsError = true) }
+                .onSuccess { _estado.value = _estado.value.copy(mensaje = textos.get(R.string.doc_eliminado), mensajeEsError = false) }
+                .onFailure { _estado.value = _estado.value.copy(mensaje = textos.get(R.string.doc_error_eliminar), mensajeEsError = true) }
         }
     }
 
