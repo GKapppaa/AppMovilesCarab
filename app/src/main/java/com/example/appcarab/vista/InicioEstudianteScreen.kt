@@ -1,6 +1,8 @@
 package com.example.appcarab.vista
 
-import androidx.compose.foundation.clickable
+import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,30 +11,37 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Quiz
 import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,28 +61,41 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
-import com.example.appcarab.ui.theme.EsfocarBackground
-import com.example.appcarab.ui.theme.EsfocarGold
-import com.example.appcarab.ui.theme.EsfocarGreen
-import com.example.appcarab.ui.theme.EsfocarGreenDark
-import com.example.appcarab.ui.theme.EsfocarInk
-import com.example.appcarab.ui.theme.EsfocarMuted
+import com.example.appcarab.ui.theme.Esfocar
 import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.EstadoTrivia
 
 private enum class SeccionMovil(
-    val titulo: String,
+    @StringRes val titulo: Int,
     val icono: ImageVector,
 ) {
-    INICIO("Inicio", Icons.Outlined.Home),
-    AULA("Aula", Icons.Outlined.School),
-    MATERIAL("Material", Icons.Outlined.FolderOpen),
-    REPASO("Repaso", Icons.Outlined.Quiz),
+    INICIO(R.string.nav_inicio, Icons.Outlined.Home),
+    AULA(R.string.nav_aula, Icons.Outlined.School),
+    MATERIAL(R.string.nav_material, Icons.Outlined.FolderOpen),
+    REPASO(R.string.nav_repaso, Icons.Outlined.Quiz),
 }
+
+/** Las categorías se guardan en Room con su clave en español; aquí solo se traduce la etiqueta. */
+private val CATEGORIAS = listOf(
+    "General" to R.string.categoria_general,
+    "Clases" to R.string.categoria_clases,
+    "Normativa" to R.string.categoria_normativa,
+    "Tareas" to R.string.categoria_tareas,
+    "Escaneos" to R.string.categoria_escaneos,
+)
+
+@Composable
+private fun nombreCategoria(clave: String): String =
+    CATEGORIAS.firstOrNull { it.first == clave }?.let { stringResource(it.second) } ?: clave
 
 @Composable
 internal fun InicioEstudiante(
@@ -99,188 +121,140 @@ internal fun InicioEstudiante(
     onShareMaterial: (String, Int) -> Unit,
     onAssignTask: (String, String, String) -> Unit,
     onEditProfile: () -> Unit,
+    onSettings: () -> Unit,
     onLogout: () -> Unit,
 ) {
     var seccionGuardada by rememberSaveable { mutableStateOf(SeccionMovil.INICIO.name) }
-    var perfilMenuAbierto by remember { mutableStateOf(false) }
     var documentoAEliminar by remember { mutableStateOf<Documento?>(null) }
     var resumenExpandidoId by rememberSaveable { mutableStateOf<Int?>(null) }
     val seccion = SeccionMovil.valueOf(seccionGuardada)
     val esProfesor = rol == "PROFESOR"
 
     Scaffold(
-        containerColor = EsfocarBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 1.dp,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(68.dp)
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    LogoInstitucional(modifier = Modifier.weight(1f), compact = true)
-                    Box {
-                        IconButton(
-                            onClick = { perfilMenuAbierto = true },
-                            modifier = Modifier.size(48.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.AccountCircle,
-                                contentDescription = "Abrir menú de perfil",
-                                tint = EsfocarGreenDark,
-                                modifier = Modifier.size(28.dp),
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = perfilMenuAbierto,
-                            onDismissRequest = { perfilMenuAbierto = false },
-                        ) {
-                            Text(
-                                nombre,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                correo,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = EsfocarMuted,
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Editar perfil") },
-                                leadingIcon = { Icon(Icons.Outlined.AccountCircle, contentDescription = null) },
-                                onClick = {
-                                    perfilMenuAbierto = false
-                                    onEditProfile()
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Cerrar sesión") },
-                                onClick = {
-                                    perfilMenuAbierto = false
-                                    onLogout()
-                                },
-                            )
-                        }
-                    }
-                }
+            EncabezadoApp {
+                LogoInstitucional(compact = true)
+                Spacer(Modifier.weight(1f))
+                BotonConfiguracion(onSettings)
+                MenuPerfil(
+                    nombre = nombre,
+                    correo = correo,
+                    codigoPerfil = codigoPerfil,
+                    onEditProfile = onEditProfile,
+                    onSettings = onSettings,
+                    onLogout = onLogout,
+                )
             }
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp,
-            ) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
                 SeccionMovil.entries.forEach { destino ->
                     NavigationBarItem(
                         selected = seccion == destino,
                         onClick = { seccionGuardada = destino.name },
                         icon = { Icon(destino.icono, contentDescription = null) },
-                        label = { Text(destino.titulo) },
+                        label = { Text(stringResource(destino.titulo), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = EsfocarGreenDark,
-                            selectedTextColor = EsfocarGreenDark,
-                            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                            unselectedIconColor = EsfocarMuted,
-                            unselectedTextColor = EsfocarMuted,
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         ),
                     )
                 }
             }
         },
     ) { insets ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(insets)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-                .padding(top = 20.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            when (seccion) {
-                SeccionMovil.INICIO -> PanelInicio(
-                    nombre = nombre,
-                    esProfesor = esProfesor,
-                    estadoAula = estadoAula,
-                    documentos = documentos,
-                    irA = { seccionGuardada = it.name },
-                    alAbrirDocumento = onOpenDocument,
-                )
-
-                SeccionMovil.AULA -> {
-                    EncabezadoSeccion(
-                        titulo = if (esProfesor) "Tu aula" else "Mi aula",
-                        descripcion = if (esProfesor) {
-                            "Organiza el acompañamiento y comparte información con tus estudiantes."
-                        } else {
-                            "Revisa las novedades, tareas y material compartido por tu profesor."
-                        },
-                    )
-                    AulaPanel(
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 720.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 20.dp, bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
+                when (seccion) {
+                    SeccionMovil.INICIO -> PanelInicio(
+                        nombre = nombre,
                         esProfesor = esProfesor,
-                        estado = estadoAula,
-                        documentosPropios = documentos,
-                        alAgregarAlumno = onAddStudent,
-                        alEnviarMensaje = onSendMessage,
-                        alCompartir = onShareMaterial,
-                        alAsignarTarea = onAssignTask,
-                        alAbrirMaterial = onOpenDocument,
-                    )
-                }
-
-                SeccionMovil.MATERIAL -> {
-                    EncabezadoSeccion(
-                        titulo = "Material de estudio",
-                        descripcion = "Tus documentos se guardan en este dispositivo y están disponibles sin conexión.",
-                    )
-                    AccionesMaterial(
+                        estadoAula = estadoAula,
                         documentos = documentos,
-                        cargando = documentosCargando,
-                        mensaje = documentosMensaje,
-                        mensajeEsError = documentosMensajeEsError,
-                        onChoosePdf = onChoosePdf,
-                        onScan = onScan,
+                        irA = { seccionGuardada = it.name },
+                        alAbrirDocumento = onOpenDocument,
                     )
-                    if (documentos.isEmpty()) {
-                        EstadoVacio(
-                            icono = Icons.Outlined.Description,
-                            titulo = "Aún no hay documentos",
-                            descripcion = "Carga un PDF para crear tu biblioteca de estudio.",
+
+                    SeccionMovil.AULA -> {
+                        EncabezadoSeccion(
+                            antetitulo = stringResource(R.string.nav_aula),
+                            titulo = stringResource(if (esProfesor) R.string.aula_titulo_profesor else R.string.aula_titulo_estudiante),
+                            descripcion = stringResource(if (esProfesor) R.string.aula_desc_profesor else R.string.aula_desc_estudiante),
                         )
-                    } else {
-                        Text(
-                            "Mis documentos · ${documentos.size}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = EsfocarInk,
+                        AulaPanel(
+                            esProfesor = esProfesor,
+                            estado = estadoAula,
+                            documentosPropios = documentos,
+                            alAgregarAlumno = onAddStudent,
+                            alEnviarMensaje = onSendMessage,
+                            alCompartir = onShareMaterial,
+                            alAsignarTarea = onAssignTask,
+                            alAbrirMaterial = onOpenDocument,
                         )
-                        documentos.forEach { documento ->
-                            DocumentoCard(
-                                documento = documento,
-                                resumenExpandido = resumenExpandidoId == documento.id,
-                                alExpandir = {
-                                    resumenExpandidoId = if (resumenExpandidoId == documento.id) null else documento.id
-                                },
-                                alCambiarCategoria = { onChangeCategory(documento.id, it) },
-                                alAbrir = { onOpenDocument(documento) },
-                                alEliminar = { documentoAEliminar = documento },
+                    }
+
+                    SeccionMovil.MATERIAL -> {
+                        EncabezadoSeccion(
+                            antetitulo = stringResource(R.string.nav_material),
+                            titulo = stringResource(R.string.material_titulo),
+                            descripcion = stringResource(R.string.material_desc),
+                        )
+                        AccionesMaterial(
+                            documentos = documentos,
+                            cargando = documentosCargando,
+                            mensaje = documentosMensaje,
+                            mensajeEsError = documentosMensajeEsError,
+                            onChoosePdf = onChoosePdf,
+                            onScan = onScan,
+                        )
+                        if (documentos.isEmpty()) {
+                            EstadoVacio(
+                                icono = Icons.Outlined.Description,
+                                titulo = stringResource(R.string.material_vacio_titulo),
+                                descripcion = stringResource(R.string.material_vacio_desc),
                             )
+                        } else {
+                            TituloBloque(stringResource(R.string.material_mis_documentos, documentos.size))
+                            documentos.forEach { documento ->
+                                DocumentoCard(
+                                    documento = documento,
+                                    resumenExpandido = resumenExpandidoId == documento.id,
+                                    alExpandir = {
+                                        resumenExpandidoId = if (resumenExpandidoId == documento.id) null else documento.id
+                                    },
+                                    alCambiarCategoria = { onChangeCategory(documento.id, it) },
+                                    alAbrir = { onOpenDocument(documento) },
+                                    alEliminar = { documentoAEliminar = documento },
+                                )
+                            }
                         }
                     }
-                }
 
-                SeccionMovil.REPASO -> {
-                    EncabezadoSeccion(
-                        titulo = "Repasa tus contenidos",
-                        descripcion = "Genera preguntas a partir del texto de los PDF que has cargado.",
-                    )
-                    TriviaPanel(estadoTrivia, onLoadTrivia, onAnswerTrivia)
+                    SeccionMovil.REPASO -> {
+                        EncabezadoSeccion(
+                            antetitulo = stringResource(R.string.nav_repaso),
+                            titulo = stringResource(R.string.repaso_titulo),
+                            descripcion = stringResource(R.string.repaso_desc),
+                        )
+                        TriviaPanel(estadoTrivia, onLoadTrivia, onAnswerTrivia)
+                    }
                 }
             }
         }
@@ -289,21 +263,118 @@ internal fun InicioEstudiante(
     documentoAEliminar?.let { documento ->
         AlertDialog(
             onDismissRequest = { documentoAEliminar = null },
-            title = { Text("Eliminar documento") },
-            text = { Text("¿Quieres eliminar «${documento.nombre}» de este dispositivo?") },
+            icon = { Icon(Icons.Outlined.DeleteOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+            title = { Text(stringResource(R.string.eliminar_titulo)) },
+            text = { Text(stringResource(R.string.eliminar_confirmar, documento.nombre)) },
             confirmButton = {
                 TextButton(onClick = {
                     onDeleteDocument(documento)
                     documentoAEliminar = null
                 }) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.accion_eliminar), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { documentoAEliminar = null }) { Text("Cancelar") }
+                TextButton(onClick = { documentoAEliminar = null }) { Text(stringResource(R.string.accion_cancelar)) }
             },
         )
     }
+}
+
+@Composable
+private fun MenuPerfil(
+    nombre: String,
+    correo: String,
+    codigoPerfil: String,
+    onEditProfile: () -> Unit,
+    onSettings: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    var abierto by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { abierto = true }, modifier = Modifier.size(48.dp)) {
+            Avatar(nombre, tamano = 36)
+        }
+        DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp).widthIn(min = 220.dp, max = 300.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Avatar(nombre, tamano = 40)
+                Column(Modifier.padding(start = 12.dp)) {
+                    Text(nombre, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        correo,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (codigoPerfil.isNotBlank()) {
+                        Text(
+                            stringResource(R.string.perfil_id, codigoPerfil),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_editar_perfil)) },
+                leadingIcon = { Icon(Icons.Outlined.AccountCircle, contentDescription = null) },
+                onClick = {
+                    abierto = false
+                    onEditProfile()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.accion_configuracion)) },
+                leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                onClick = {
+                    abierto = false
+                    onSettings()
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.menu_cerrar_sesion), color = MaterialTheme.colorScheme.error) },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                onClick = {
+                    abierto = false
+                    onLogout()
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun Avatar(nombre: String, tamano: Int) {
+    val iniciales = nombre.split(' ').filter(String::isNotBlank).take(2).joinToString("") { it.first().uppercase() }
+    Surface(
+        modifier = Modifier.size(tamano.dp),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+        border = BorderStroke(2.dp, Esfocar.colores.dorado),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (iniciales.isBlank()) {
+                Icon(Icons.Outlined.AccountCircle, contentDescription = stringResource(R.string.menu_perfil_desc), tint = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text(
+                    iniciales,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = if (tamano >= 40) MaterialTheme.typography.titleSmall else MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TituloBloque(texto: String) {
+    Text(texto, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
 }
 
 @Composable
@@ -315,120 +386,116 @@ private fun PanelInicio(
     irA: (SeccionMovil) -> Unit,
     alAbrirDocumento: (Documento) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                if (esProfesor) "PANEL DOCENTE" else "TU ESPACIO DE FORMACIÓN",
-                style = MaterialTheme.typography.labelMedium,
-                color = EsfocarGreen,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                "Hola, ${nombre.substringBefore(' ')}",
-                style = MaterialTheme.typography.headlineMedium,
-                color = EsfocarInk,
-                fontWeight = FontWeight.Bold,
-            )
-            Text("¿Qué te gustaría hacer hoy?", color = EsfocarMuted, style = MaterialTheme.typography.bodyLarge)
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        EncabezadoSeccion(
+            antetitulo = stringResource(if (esProfesor) R.string.inicio_eyebrow_profesor else R.string.inicio_eyebrow_estudiante),
+            titulo = stringResource(R.string.inicio_saludo, nombre.substringBefore(' ')),
+            descripcion = stringResource(R.string.inicio_pregunta),
+        )
 
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = EsfocarGreenDark),
-        ) {
-            Column(
-                modifier = Modifier.padding(22.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Surface(shape = RoundedCornerShape(50), color = EsfocarGold) {
-                    Text(
-                        "APRENDIZAJE A TU RITMO",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                        color = EsfocarInk,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-                Text(
-                    "Todo tu material, en un solo lugar.",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    "Estudia tus PDF, revisa el aula y practica con preguntas basadas en tus documentos.",
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                OutlinedButton(
-                    onClick = { irA(SeccionMovil.MATERIAL) },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(16.dp),
-                ) {
-                    Text("Ir a mis materiales", color = MaterialTheme.colorScheme.onPrimary)
-                    Spacer(Modifier.width(8.dp))
-                    Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null, tint = EsfocarGold)
-                }
-            }
-        }
+        TarjetaDestacada(onClick = { irA(SeccionMovil.MATERIAL) })
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (esProfesor) {
-                ResumenContador(
-                    valor = estadoAula.alumnos.size,
-                    etiqueta = "Estudiantes",
-                    icono = Icons.Outlined.School,
-                    modifier = Modifier.weight(1f),
-                )
+                ResumenContador(estadoAula.alumnos.size, stringResource(R.string.contador_estudiantes), Icons.Outlined.School, Modifier.weight(1f))
             } else {
-                ResumenContador(
-                    valor = estadoAula.mensajes.size,
-                    etiqueta = "Mensajes",
-                    icono = Icons.Outlined.ChatBubbleOutline,
-                    modifier = Modifier.weight(1f),
-                )
-                ResumenContador(
-                    valor = estadoAula.tareas.size,
-                    etiqueta = "Tareas",
-                    icono = Icons.Outlined.Description,
-                    modifier = Modifier.weight(1f),
-                )
+                ResumenContador(estadoAula.mensajes.size, stringResource(R.string.contador_mensajes), Icons.Outlined.ChatBubbleOutline, Modifier.weight(1f))
+                ResumenContador(estadoAula.tareas.size, stringResource(R.string.contador_tareas), Icons.Outlined.Description, Modifier.weight(1f))
             }
-            ResumenContador(
-                valor = documentos.size,
-                etiqueta = "PDF",
-                icono = Icons.Outlined.PictureAsPdf,
-                modifier = Modifier.weight(1f),
-            )
+            ResumenContador(documentos.size, stringResource(R.string.contador_pdf), Icons.Outlined.PictureAsPdf, Modifier.weight(1f))
         }
 
-        Text("Accesos rápidos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        TituloBloque(stringResource(R.string.accesos_rapidos))
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             AccesoRapido(
-                titulo = "Aula",
-                descripcion = if (esProfesor) "Estudiantes y comunicación" else "Mensajes y tareas",
+                titulo = stringResource(R.string.nav_aula),
+                descripcion = stringResource(if (esProfesor) R.string.acceso_aula_desc_profesor else R.string.acceso_aula_desc_estudiante),
                 icono = Icons.Outlined.School,
                 onClick = { irA(SeccionMovil.AULA) },
             )
             AccesoRapido(
-                titulo = "Repasar",
-                descripcion = "Preguntas desde tus PDF",
+                titulo = stringResource(R.string.acceso_repasar),
+                descripcion = stringResource(R.string.acceso_repasar_desc),
                 icono = Icons.Outlined.Quiz,
                 onClick = { irA(SeccionMovil.REPASO) },
             )
         }
 
         if (documentos.isNotEmpty()) {
-            Text("Últimos documentos", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            documentos.take(2).forEach { documento ->
-                AccesoRapido(
-                    titulo = documento.nombre,
-                    descripcion = "PDF · ${documento.categoria}",
-                    icono = Icons.Outlined.PictureAsPdf,
-                    onClick = { alAbrirDocumento(documento) },
-                )
+            TituloBloque(stringResource(R.string.ultimos_documentos))
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                documentos.take(2).forEach { documento ->
+                    AccesoRapido(
+                        titulo = documento.nombre,
+                        descripcion = stringResource(R.string.documento_desc, nombreCategoria(documento.categoria)),
+                        icono = Icons.Outlined.PictureAsPdf,
+                        onClick = { alAbrirDocumento(documento) },
+                    )
+                }
             }
         }
+    }
+}
+
+/** Tarjeta principal: degradado verde institucional cerrado por la franja dorada. */
+@Composable
+private fun TarjetaDestacada(onClick: () -> Unit) {
+    val colores = Esfocar.colores
+    Card(
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.linearGradient(listOf(colores.heroInicio, colores.heroFin))),
+        ) {
+            Column(
+                modifier = Modifier.padding(22.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Surface(shape = RoundedCornerShape(50), color = colores.dorado) {
+                    Text(
+                        stringResource(R.string.hero_pill).uppercase(),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        color = colores.sobreDorado,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+                Text(stringResource(R.string.hero_titulo), color = Color.White, style = MaterialTheme.typography.headlineSmall)
+                Text(
+                    stringResource(R.string.hero_desc),
+                    color = Color.White.copy(alpha = 0.88f),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(Modifier.height(2.dp))
+                Button(
+                    onClick = onClick,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = colores.heroInicio,
+                    ),
+                ) {
+                    Text(stringResource(R.string.hero_cta), style = MaterialTheme.typography.titleSmall)
+                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null, modifier = Modifier.size(18.dp))
+                }
+            }
+            FranjaDorada(alto = 6.dp)
+        }
+    }
+}
+
+@Composable
+private fun TarjetaBase(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, content: @Composable () -> Unit) {
+    val colores = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    val borde = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    if (onClick != null) {
+        Card(onClick = onClick, modifier = modifier, shape = MaterialTheme.shapes.large, colors = colores, border = borde) { content() }
+    } else {
+        Card(modifier = modifier, shape = MaterialTheme.shapes.large, colors = colores, border = borde) { content() }
     }
 }
 
@@ -439,19 +506,20 @@ private fun ResumenContador(
     icono: ImageVector,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder(),
-    ) {
+    TarjetaBase(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Icon(icono, contentDescription = null, tint = EsfocarGreen, modifier = Modifier.size(21.dp))
-            Text(valor.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = EsfocarMuted)
+            IconoEnCaja(icono, tamano = 34.dp)
+            Text(valor.toString(), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                etiqueta,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -463,42 +531,27 @@ private fun AccesoRapido(
     icono: ImageVector,
     onClick: () -> Unit,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder(),
-    ) {
+    TarjetaBase(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Surface(
-                modifier = Modifier.size(44.dp),
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(icono, contentDescription = null, tint = EsfocarGreen)
-                }
-            }
+            IconoEnCaja(icono)
             Column(
                 modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Text(titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                Text(descripcion, style = MaterialTheme.typography.bodySmall, color = EsfocarMuted, maxLines = 1)
+                Text(titulo, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    descripcion,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-            Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null, tint = EsfocarMuted)
+            Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
-    }
-}
-
-@Composable
-private fun EncabezadoSeccion(titulo: String, descripcion: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(titulo, style = MaterialTheme.typography.headlineSmall, color = EsfocarInk, fontWeight = FontWeight.Bold)
-        Text(descripcion, style = MaterialTheme.typography.bodyMedium, color = EsfocarMuted)
     }
 }
 
@@ -511,49 +564,41 @@ private fun AccionesMaterial(
     onChoosePdf: () -> Unit,
     onScan: () -> Unit,
 ) {
-    Card(
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder(),
-    ) {
+    TarjetaBase {
         Column(
             modifier = Modifier.fillMaxWidth().padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(46.dp),
-                    shape = RoundedCornerShape(15.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Outlined.FolderOpen, contentDescription = null, tint = EsfocarGreen)
-                    }
-                }
+                IconoEnCaja(Icons.Outlined.FolderOpen, tamano = 46.dp)
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                    Text("Biblioteca personal", fontWeight = FontWeight.SemiBold)
-                    Text("${documentos.size} documentos guardados", style = MaterialTheme.typography.bodySmall, color = EsfocarMuted)
+                    Text(stringResource(R.string.biblioteca_titulo), style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        pluralStringResource(R.plurals.biblioteca_conteo, documentos.size, documentos.size),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
             Button(
                 onClick = onChoosePdf,
                 enabled = !cargando,
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                shape = MaterialTheme.shapes.medium,
             ) {
-                Icon(Icons.Outlined.Description, contentDescription = null)
+                Icon(Icons.Outlined.UploadFile, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text(if (cargando) "Procesando PDF…" else "Cargar documento PDF")
+                Text(stringResource(if (cargando) R.string.material_procesando else R.string.material_cargar))
             }
             OutlinedButton(
                 onClick = onScan,
                 enabled = !cargando,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp),
+                shape = MaterialTheme.shapes.medium,
             ) {
-                Icon(Icons.Outlined.PictureAsPdf, contentDescription = null)
+                Icon(Icons.Outlined.DocumentScanner, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Escanear con cámara")
+                Text(stringResource(R.string.material_escanear))
             }
             mensaje?.let { InlineMessage(it, mensajeEsError) }
         }
@@ -570,44 +615,34 @@ private fun DocumentoCard(
     alEliminar: () -> Unit,
 ) {
     var menuCategoriaAbierto by remember(documento.id) { mutableStateOf(false) }
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder(),
-    ) {
+    TarjetaBase {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(verticalAlignment = Alignment.Top) {
-                Surface(
-                    modifier = Modifier.size(44.dp),
-                    shape = RoundedCornerShape(13.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Outlined.PictureAsPdf, contentDescription = null, tint = EsfocarGreen)
-                    }
-                }
+                IconoEnCaja(Icons.Outlined.PictureAsPdf)
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                    Text(documento.nombre, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(documento.nombre, style = MaterialTheme.typography.titleSmall)
                     Box {
                         TextButton(
                             onClick = { menuCategoriaAbierto = true },
-                            modifier = Modifier.height(44.dp),
+                            modifier = Modifier.heightIn(min = 44.dp),
                         ) {
-                            Text("Carpeta: ${documento.categoria}")
+                            Icon(Icons.Outlined.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.documento_carpeta, nombreCategoria(documento.categoria)))
                         }
                         DropdownMenu(
                             expanded = menuCategoriaAbierto,
                             onDismissRequest = { menuCategoriaAbierto = false },
                         ) {
-                            listOf("General", "Clases", "Normativa", "Tareas", "Escaneos").forEach { categoria ->
+                            CATEGORIAS.forEach { (clave, etiqueta) ->
                                 DropdownMenuItem(
-                                    text = { Text(categoria) },
+                                    text = { Text(stringResource(etiqueta)) },
                                     onClick = {
                                         menuCategoriaAbierto = false
-                                        alCambiarCategoria(categoria)
+                                        alCambiarCategoria(clave)
                                     },
                                 )
                             }
@@ -615,28 +650,45 @@ private fun DocumentoCard(
                     }
                 }
             }
-            Text("Resumen del documento", color = EsfocarGreen, style = MaterialTheme.typography.labelLarge)
-            Text(
-                documento.resumen,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = if (resumenExpandido) Int.MAX_VALUE else 3,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        stringResource(R.string.documento_resumen).uppercase(),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Text(
+                        documento.resumen,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = if (resumenExpandido) Int.MAX_VALUE else 3,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = alExpandir, modifier = Modifier.weight(1f).height(48.dp)) {
-                    Text(if (resumenExpandido) "Ver menos" else "Ver resumen")
+                TextButton(onClick = alExpandir, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                    Text(stringResource(if (resumenExpandido) R.string.ver_menos else R.string.ver_resumen), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
-                OutlinedButton(onClick = alAbrir, modifier = Modifier.weight(1f).height(48.dp)) {
-                    Text("Abrir PDF")
+                OutlinedButton(
+                    onClick = alAbrir,
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Text(stringResource(R.string.abrir_pdf), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
                 IconButton(onClick = alEliminar, modifier = Modifier.size(48.dp)) {
                     Icon(
                         Icons.Outlined.DeleteOutline,
-                        contentDescription = "Eliminar ${documento.nombre}",
+                        contentDescription = stringResource(R.string.eliminar_documento_desc, documento.nombre),
                         tint = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -647,23 +699,24 @@ private fun DocumentoCard(
 
 @Composable
 private fun EstadoVacio(icono: ImageVector, titulo: String, descripcion: String) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder(),
-    ) {
+    TarjetaBase {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            modifier = Modifier.fillMaxWidth().padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Surface(modifier = Modifier.size(54.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+            Surface(modifier = Modifier.size(60.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(icono, contentDescription = null, tint = EsfocarGreen, modifier = Modifier.size(26.dp))
+                    Icon(icono, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(28.dp))
                 }
             }
-            Text(titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(descripcion, color = EsfocarMuted, style = MaterialTheme.typography.bodyMedium)
+            Text(titulo, style = MaterialTheme.typography.titleMedium)
+            Text(
+                descripcion,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
         }
     }
 }
