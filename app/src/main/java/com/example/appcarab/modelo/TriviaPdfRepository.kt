@@ -1,6 +1,7 @@
 package com.example.appcarab.modelo
 
 import android.content.Context
+import com.example.appcarab.R
 import java.io.File
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -16,10 +17,11 @@ data class TriviaQuestion(
 class TriviaPdfRepository(
     private val context: Context,
     private val documentoDao: DocumentoDao,
+    private val textos: Textos = TextosAndroid(context),
 ) {
     suspend fun question(usuarioId: Int): TriviaQuestion = withContext(Dispatchers.IO) {
         val documentos = documentoDao.documentosDeUsuario(usuarioId)
-        val textos = documentos.mapNotNull { documento ->
+        val textosPdf = documentos.mapNotNull { documento ->
             if (documento.categoria == "Escaneos") return@mapNotNull null
             val texto = documento.textoExtraido.ifBlank {
                 val archivo = File(
@@ -35,10 +37,8 @@ class TriviaPdfRepository(
             texto.takeIf(String::isNotBlank)?.let { documento to it }
         }
 
-        require(textos.isNotEmpty()) {
-            "Carga un PDF con texto seleccionable para crear preguntas. Los escaneos necesitan OCR."
-        }
-        val (documento, texto) = textos.random()
+        require(textosPdf.isNotEmpty()) { textos.get(R.string.trivia_sin_texto) }
+        val (documento, texto) = textosPdf.random()
         GeneradorTriviaPdf.generar(documento.nombre, texto)
     }
 }
