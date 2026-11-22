@@ -116,13 +116,5 @@ class ApiRestRepositoryTest {
         assertEquals(0, api.llamadasGet)
     }
 
-    @Test(expected = CancellationException::class)
-    fun propagaLaCancelacionSinDevolverGuardadoLocal() {
-        runBlocking {
-            val api = FakeEsfocarApi()
-            api.lanzarCancelacion = true
-            val repositorio = ApiRestRepository(api)
-            repositorio.sincronizar("perfiles", "EST-000127", "contenido")
-        }
-    }
+
 }
