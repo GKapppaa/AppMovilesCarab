@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 
 class UsuarioRepository(
     private val usuarioDao: UsuarioDao,
-    private val sincronizacion: SincronizacionPendiente,
+    private val sincronizacion: Sincronizador,
 ) {
 
     suspend fun registrarUsuario(nombre: String, email: String, password: String, role: String): Usuario? = withContext(Dispatchers.IO) {
