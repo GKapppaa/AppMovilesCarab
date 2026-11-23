@@ -255,7 +255,7 @@
     <string name="idioma_sistema">Idioma del sistema</string>
     <string name="idioma_es" translatable="false">Español</string>
     <string name="idioma_en" translatable="false">English</string>
-    <string name="config_idioma_desc">También puedes cambiarlo en Ajustes de Android › Apps › AppCarab › Idioma. Los resúmenes y preguntas conservan el idioma de cada PDF.</string>
+    <string name="config_idioma_desc">El español es el idioma predeterminado. Puedes elegir inglés aquí o en Ajustes de Android › Apps › AppCarab › Idioma. Los PDF y sus preguntas conservan el idioma del documento.</string>
     <string name="config_accesibilidad">Accesibilidad</string>
     <string name="config_movimiento">Reducir animaciones</string>
     <string name="config_movimiento_desc">Detiene el carrusel de fotos de la pantalla de bienvenida.</string>
