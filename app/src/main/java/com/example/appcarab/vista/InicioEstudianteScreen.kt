@@ -72,6 +72,7 @@ import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
 import com.example.appcarab.ui.theme.Esfocar
 import com.example.appcarab.vistaModelo.EstadoAula
+import com.example.appcarab.vistaModelo.EstadoOpenLibrary
 import com.example.appcarab.vistaModelo.EstadoTrivia
 
 private enum class SeccionMovil(
@@ -126,6 +127,10 @@ internal fun InicioEstudiante(
     onEditProfile: () -> Unit,
     onSettings: () -> Unit,
     onLogout: () -> Unit,
+    estadoOpenLibrary: EstadoOpenLibrary = EstadoOpenLibrary(),
+    onQueryChangeOpenLibrary: (String) -> Unit = {},
+    onSearchOpenLibrary: (String) -> Unit = {},
+    onOpenOpenLibraryLink: (String) -> Unit = {},
 ) {
     var seccionGuardada by rememberSaveable { mutableStateOf(SeccionMovil.INICIO.name) }
     var documentoAEliminar by remember { mutableStateOf<Documento?>(null) }
@@ -268,6 +273,12 @@ internal fun InicioEstudiante(
                             descripcion = stringResource(R.string.repaso_desc),
                         )
                         TriviaPanel(estadoTrivia, onLoadTrivia, onAnswerTrivia)
+                        OpenLibraryPanel(
+                            estado = estadoOpenLibrary,
+                            onQueryChange = onQueryChangeOpenLibrary,
+                            onSearch = onSearchOpenLibrary,
+                            onOpenLink = onOpenOpenLibraryLink,
+                        )
                     }
                 }
             }

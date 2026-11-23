@@ -30,9 +30,9 @@ import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.PantallaAcceso
 import com.example.appcarab.vistaModelo.AulaVistaModelo
-import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
 import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
+import com.example.appcarab.vistaModelo.OpenLibraryVistaModelo
 
 @Composable
 fun AccesoApp(
@@ -41,6 +41,7 @@ fun AccesoApp(
     aulaViewModel: AulaVistaModelo,
     triviaViewModel: TriviaVistaModelo,
     sesionRemotaViewModel: SesionRemotaVistaModelo,
+    openLibraryViewModel: OpenLibraryVistaModelo,
     preferencias: PreferenciasApp,
     temaOscuro: Boolean,
     preferenciasRepository: PreferenciasRepository,
@@ -50,6 +51,7 @@ fun AccesoApp(
     val estadoAula by aulaViewModel.estado.collectAsState()
     val estadoTrivia by triviaViewModel.estado.collectAsState()
     val estadoSesionRemota by sesionRemotaViewModel.estado.collectAsState()
+    val estadoOpenLibrary by openLibraryViewModel.estado.collectAsState()
     val context = LocalContext.current
     var uriEscaneo by rememberSaveable { mutableStateOf<String?>(null) }
     var configuracionAbierta by rememberSaveable { mutableStateOf(false) }
@@ -99,6 +101,11 @@ fun AccesoApp(
     LaunchedEffect(estado.usuarioId, estado.codigoPerfil, estado.rolUsuario) {
         if (estado.usuarioId != null && estado.codigoPerfil.isNotBlank()) {
             sesionRemotaViewModel.abrir(estado.codigoPerfil, estado.rolUsuario)
+        }
+    }
+    LaunchedEffect(estado.pantalla) {
+        if (estado.pantalla == PantallaAcceso.INICIO && !estadoOpenLibrary.busquedaRealizada) {
+            openLibraryViewModel.buscar()
         }
     }
 
@@ -209,6 +216,15 @@ fun AccesoApp(
                 onLogout = {
                     sesionRemotaViewModel.cerrar()
                     viewModel.cerrarSesion()
+                },
+                estadoOpenLibrary = estadoOpenLibrary,
+                onQueryChangeOpenLibrary = openLibraryViewModel::cambiarQuery,
+                onSearchOpenLibrary = { openLibraryViewModel.buscar(it) },
+                onOpenOpenLibraryLink = { url ->
+                    runCatching {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
+                    }
                 },
             )
         }

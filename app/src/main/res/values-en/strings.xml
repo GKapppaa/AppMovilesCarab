@@ -136,9 +136,26 @@
     <string name="material_vacio_desc">Upload a PDF to start your study library.</string>
     <string name="material_mis_documentos">My documents · %1$d</string>
     <string name="repaso_titulo">Review your content</string>
-    <string name="repaso_desc">Generate questions from the text in the PDFs you uploaded.</string>
+    <string name="repaso_desc">Generate questions from your uploaded PDFs and explore external resources.</string>
     <string name="eliminar_titulo">Delete document</string>
     <string name="eliminar_confirmar">Delete “%1$s” from this device?</string>
+
+    <!-- Open Library API (Repaso) -->
+    <string name="openlibrary_titulo">Open Library</string>
+    <string name="openlibrary_desc">Search for books and complementary academic resources from Open Library public API.</string>
+    <string name="openlibrary_campo_buscar">Search book topic or title</string>
+    <string name="openlibrary_btn_buscar">Search</string>
+    <string name="openlibrary_sugerencias">Recommended searches:</string>
+    <string name="openlibrary_chip_derecho">Law</string>
+    <string name="openlibrary_chip_seguridad">Public Safety</string>
+    <string name="openlibrary_chip_criminologia">Criminology</string>
+    <string name="openlibrary_chip_constitucion">Constitution</string>
+    <string name="openlibrary_cargando">Querying Open Library API…</string>
+    <string name="openlibrary_error_buscar">Could not connect to Open Library API. Please check your internet connection.</string>
+    <string name="openlibrary_sin_resultados">No books found for “%1$s”.</string>
+    <string name="openlibrary_resultados_titulo">Search results (%1$d)</string>
+    <string name="openlibrary_publicado">Published in %1$d</string>
+    <string name="openlibrary_ver_detalle">View on Open Library</string>
 
     <!-- Home -->
     <string name="inicio_eyebrow_profesor">Teacher dashboard</string>

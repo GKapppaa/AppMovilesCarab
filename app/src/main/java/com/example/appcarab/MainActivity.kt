@@ -29,6 +29,8 @@ import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
 import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
+import com.example.appcarab.vistaModelo.OpenLibraryVistaModelo
+import com.example.appcarab.modelo.OpenLibraryRepository
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -110,6 +112,17 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val openLibraryRepository = OpenLibraryRepository()
+        val openLibraryFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(OpenLibraryVistaModelo::class.java)) {
+                    return OpenLibraryVistaModelo(openLibraryRepository, textos) as T
+                }
+                throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
+            }
+        }
+
         setContent {
             val preferencias by preferenciasRepository.preferencias.collectAsState()
             val oscuro = when (preferencias.tema) {
@@ -123,12 +136,14 @@ class MainActivity : ComponentActivity() {
                 val aulaViewModel: AulaVistaModelo = viewModel(factory = aulaFactory)
                 val triviaViewModel: TriviaVistaModelo = viewModel(factory = triviaFactory)
                 val sesionRemotaViewModel: SesionRemotaVistaModelo = viewModel(factory = sesionRemotaFactory)
+                val openLibraryViewModel: OpenLibraryVistaModelo = viewModel(factory = openLibraryFactory)
                 AccesoApp(
                     viewModel = viewModel,
                     documentosViewModel = documentsViewModel,
                     aulaViewModel = aulaViewModel,
                     triviaViewModel = triviaViewModel,
                     sesionRemotaViewModel = sesionRemotaViewModel,
+                    openLibraryViewModel = openLibraryViewModel,
                     preferencias = preferencias,
                     temaOscuro = oscuro,
                     preferenciasRepository = preferenciasRepository,

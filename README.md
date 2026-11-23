@@ -294,8 +294,7 @@ La pauta advierte que cambios al repositorio después de la fecha límite pueden
 
 ## Equipo
 
-- Daniel Pinto
-- Hernán García
+- Gustavo Oporto
 
 ## Créditos de fotografías de bienvenida
 
