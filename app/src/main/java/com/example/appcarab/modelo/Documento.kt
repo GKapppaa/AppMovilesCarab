@@ -16,7 +16,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index("usuarioId")],
+    indices = [Index("usuarioId"), Index(value = ["idRemoto"], unique = true)],
 )
 data class Documento(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
@@ -26,5 +26,7 @@ data class Documento(
     val resumen: String,
     @ColumnInfo(defaultValue = "''") val textoExtraido: String = "",
     @ColumnInfo(defaultValue = "'General'") val categoria: String = "General",
+    @ColumnInfo(defaultValue = "NULL") val idRemoto: String? = null,
+    @ColumnInfo(defaultValue = "NULL") val propietarioRemoto: String? = null,
     val creadoEn: Long = System.currentTimeMillis(),
 )

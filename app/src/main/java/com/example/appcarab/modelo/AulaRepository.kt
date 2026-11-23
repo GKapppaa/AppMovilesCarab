@@ -10,24 +10,32 @@ class AulaRepository(
     private val usuarioDao: UsuarioDao,
     private val sincronizacion: SincronizacionPendiente,
     private val textos: Textos,
+    private val documentosDao: DocumentoDao,
+    private val documentosRemotos: ApiDocumentosRepository,
 ) {
     private fun estadoSync(remoto: ResultadoSync) =
         textos.get(if (remoto.sincronizado) R.string.sync_remoto else R.string.sync_pendiente)
 
-    suspend fun agregarAlumno(profesorId: Int, codigoAlumno: String): String = withContext(Dispatchers.IO) {
+    suspend fun agregarAlumno(profesorId: Int, codigoAlumno: String, token: String?): String = withContext(Dispatchers.IO) {
         check(usuarioDao.buscarPorId(profesorId)?.role == "PROFESOR") { textos.get(R.string.aula_solo_profesor) }
         require(ValidadoresFormulario.codigoAlumnoValido(codigoAlumno)) { textos.get(R.string.aula_formato_id) }
-        val alumno = aulaDao.buscarAlumno(codigoAlumno.trim().uppercase())
-            ?: error(textos.get(R.string.aula_estudiante_no_existe))
-        check(alumno.id != profesorId) { textos.get(R.string.aula_no_autoasignar) }
-        val result = aulaDao.asignarAlumno(AlumnoProfesor(profesorId, alumno.id))
-        if (result == -1L) textos.get(R.string.aula_ya_vinculado)
-        else {
-            val remote = sincronizacion.sincronizar("secciones", "$profesorId-${alumno.id}", JSONObject()
-                .put("profesorId", profesorId).put("alumnoId", alumno.id).put("codigoAlumno", alumno.codigoPerfil).toString())
-            "${textos.get(R.string.aula_alumno_agregado, alumno.nombre)} ${estadoSync(remote)}"
+        val codigo = codigoAlumno.trim().uppercase()
+        val remoteToken = token ?: error(textos.get(R.string.sesion_remota_requerida))
+        val alumnoRemoto = documentosRemotos.vincularAlumno(remoteToken, codigo)
+        val alumnoLocal = aulaDao.buscarAlumno(codigo)
+        if (alumnoLocal != null && alumnoLocal.id != profesorId) {
+            aulaDao.asignarAlumno(AlumnoProfesor(profesorId, alumnoLocal.id))
         }
+        val remote = sincronizacion.sincronizar(
+            "secciones",
+            "$profesorId-$codigo",
+            JSONObject().put("profesorId", profesorId).put("codigoAlumno", codigo).toString(),
+        )
+        "${textos.get(R.string.aula_alumno_agregado, alumnoRemoto.nombre)} ${estadoSync(remote)}"
     }
+
+    suspend fun listarAlumnosRemotos(token: String): List<AlumnoAula> =
+        documentosRemotos.listarAlumnos(token).map { AlumnoAula(it.codigoPerfil, it.nombre) }
 
     suspend fun enviarMensaje(profesorId: Int, codigoAlumno: String, texto: String): String = withContext(Dispatchers.IO) {
         check(usuarioDao.buscarPorId(profesorId)?.role == "PROFESOR") { textos.get(R.string.aula_solo_profesor) }
@@ -42,16 +50,42 @@ class AulaRepository(
         "${textos.get(R.string.aula_mensaje_enviado)} ${estadoSync(remoto)}"
     }
 
-    suspend fun compartirMaterial(profesorId: Int, codigoAlumno: String, documentoId: Int): String = withContext(Dispatchers.IO) {
+    suspend fun compartirMaterial(
+        profesorId: Int,
+        codigoAlumno: String,
+        documentoId: Int,
+        token: String?,
+    ): String = withContext(Dispatchers.IO) {
         check(usuarioDao.buscarPorId(profesorId)?.role == "PROFESOR") { textos.get(R.string.aula_solo_profesor) }
         require(ValidadoresFormulario.codigoAlumnoValido(codigoAlumno)) { textos.get(R.string.aula_formato_id) }
-        val alumno = aulaDao.buscarAlumno(codigoAlumno.trim().uppercase()) ?: error(textos.get(R.string.aula_estudiante_no_existe))
-        check(aulaDao.alumnoAsignado(profesorId, alumno.id)) { textos.get(R.string.aula_primero_vincular) }
-        check(aulaDao.documentoDelProfesor(documentoId, profesorId)) { textos.get(R.string.aula_solo_documento_propio) }
-        val id = aulaDao.compartirMaterial(MaterialCompartido(profesorId = profesorId, alumnoId = alumno.id, documentoId = documentoId))
-        val remoto = sincronizacion.sincronizar("materiales", id.toString(), JSONObject()
-            .put("profesorId", profesorId).put("alumnoId", alumno.id).put("documentoId", documentoId).toString())
-        "${textos.get(R.string.aula_material_compartido)} ${estadoSync(remoto)}"
+        val remoteToken = token ?: error(textos.get(R.string.sesion_remota_requerida))
+        val documento = documentosDao.buscarPorId(documentoId)
+            ?: error(textos.get(R.string.aula_solo_documento_propio))
+        check(documento.usuarioId == profesorId) { textos.get(R.string.aula_solo_documento_propio) }
+        val idRemoto = documento.idRemoto
+            ?: error(textos.get(R.string.aula_pdf_debe_subirse))
+        documentosRemotos.compartir(remoteToken, idRemoto, codigoAlumno.trim().uppercase())
+        val alumnoLocal = aulaDao.buscarAlumno(codigoAlumno.trim().uppercase())
+        if (alumnoLocal != null && aulaDao.alumnoAsignado(profesorId, alumnoLocal.id)) {
+            val id = aulaDao.compartirMaterial(
+                MaterialCompartido(
+                    profesorId = profesorId,
+                    alumnoId = alumnoLocal.id,
+                    documentoId = documentoId,
+                ),
+            )
+            sincronizacion.sincronizar(
+                "materiales",
+                id.toString(),
+                JSONObject()
+                    .put("profesorId", profesorId)
+                    .put("codigoAlumno", codigoAlumno.trim().uppercase())
+                    .put("documentoId", documentoId)
+                    .put("documentoRemotoId", idRemoto)
+                    .toString(),
+            )
+        }
+        textos.get(R.string.aula_material_compartido)
     }
 
     suspend fun asignarTarea(profesorId: Int, codigoAlumno: String, titulo: String, descripcion: String): String = withContext(Dispatchers.IO) {

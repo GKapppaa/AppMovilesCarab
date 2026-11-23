@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,7 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
-import com.example.appcarab.modelo.Usuario
+import com.example.appcarab.modelo.AlumnoAula
 import com.example.appcarab.modelo.ValidadoresFormulario
 import com.example.appcarab.vistaModelo.EstadoAula
 
@@ -95,16 +94,19 @@ private fun PanelDocente(
 ) {
     var codigoAlumno by rememberSaveable { mutableStateOf("") }
     var envioCodigoIntentado by rememberSaveable { mutableStateOf(false) }
-    var alumnoSeleccionadoId by rememberSaveable { mutableIntStateOf(0) }
+    var alumnoSeleccionadoCodigo by rememberSaveable { mutableStateOf("") }
     var accionSeleccionada by rememberSaveable { mutableStateOf(AccionDocente.COMPARTIR.name) }
     var menuAlumnosAbierto by remember { mutableStateOf(false) }
-    val alumnoSeleccionado = estado.alumnos.firstOrNull { it.id == alumnoSeleccionadoId }
+    val alumnoSeleccionado = estado.alumnos.firstOrNull { it.codigoPerfil == alumnoSeleccionadoCodigo }
     val accion = AccionDocente.valueOf(accionSeleccionada)
 
     LaunchedEffect(estado.alumnos) {
-        if (estado.alumnos.none { it.id == alumnoSeleccionadoId }) {
-            alumnoSeleccionadoId = estado.alumnos.firstOrNull()?.id ?: 0
+        if (estado.alumnos.none { it.codigoPerfil == alumnoSeleccionadoCodigo }) {
+            alumnoSeleccionadoCodigo = estado.alumnos.firstOrNull()?.codigoPerfil.orEmpty()
         }
+    }
+    LaunchedEffect(alumnoSeleccionadoCodigo) {
+        accionSeleccionada = AccionDocente.COMPARTIR.name
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -187,7 +189,7 @@ private fun PanelDocente(
                                         }
                                     },
                                     onClick = {
-                                        alumnoSeleccionadoId = alumno.id
+                                        alumnoSeleccionadoCodigo = alumno.codigoPerfil
                                         menuAlumnosAbierto = false
                                     },
                                 )
@@ -215,7 +217,12 @@ private fun PanelDocente(
                         fontWeight = FontWeight.SemiBold,
                     )
                     androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        AccionDocente.entries.forEach { item ->
+                        val accionesDisponibles = if (alumnoSeleccionado.aulaLocal) {
+                            AccionDocente.entries
+                        } else {
+                            listOf(AccionDocente.COMPARTIR)
+                        }
+                        accionesDisponibles.forEach { item ->
                             FilterChip(
                                 selected = accion == item,
                                 onClick = { accionSeleccionada = item.name },
@@ -227,7 +234,7 @@ private fun PanelDocente(
                             )
                         }
                     }
-                    key(alumnoSeleccionado.id) {
+                    key(alumnoSeleccionado.codigoPerfil) {
                         when (accion) {
                             AccionDocente.COMPARTIR -> CompartirConAlumno(
                                 alumno = alumnoSeleccionado,
@@ -258,7 +265,7 @@ private fun PanelDocente(
 
 @Composable
 private fun CompartirConAlumno(
-    alumno: Usuario,
+    alumno: AlumnoAula,
     documentos: List<Documento>,
     onShare: (Int) -> Unit,
 ) {
@@ -293,13 +300,20 @@ private fun CompartirConAlumno(
                         maxLines = 2,
                     )
                     Button(
-                        onClick = { onShare(documento.id) },
+                        onClick = {
+                            if (documento.idRemoto != null) onShare(documento.id)
+                        },
+                        enabled = documento.idRemoto != null,
                         modifier = Modifier.heightIn(min = 48.dp),
                         shape = MaterialTheme.shapes.medium,
                     ) {
-                        androidx.compose.material3.Icon(Icons.Outlined.Share, contentDescription = null)
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.accion_compartir))
+                        if (documento.idRemoto == null) {
+                            Text(stringResource(R.string.aula_pdf_pendiente))
+                        } else {
+                            androidx.compose.material3.Icon(Icons.Outlined.Share, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.accion_compartir))
+                        }
                     }
                 }
             }

@@ -10,14 +10,19 @@ import androidx.work.WorkManager
 import kotlinx.coroutines.CancellationException
 import java.util.concurrent.TimeUnit
 
+/** Contrato mínimo para poder simular la sincronización en pruebas sin Android. */
+interface Sincronizador {
+    suspend fun sincronizar(tipo: String, clave: String, contenido: String): ResultadoSync
+}
+
 class SincronizacionPendiente(
     context: Context,
     private val dao: PendienteSincronizacionDao,
     private val api: ApiRestRepository,
-) {
+) : Sincronizador {
     private val workManager = WorkManager.getInstance(context.applicationContext)
 
-    suspend fun sincronizar(tipo: String, clave: String, contenido: String): ResultadoSync {
+    override suspend fun sincronizar(tipo: String, clave: String, contenido: String): ResultadoSync {
         val pendiente = PendienteSincronizacion(tipo, clave, contenido)
         dao.guardar(pendiente)
         val resultado = api.sincronizar(tipo, clave, contenido)
