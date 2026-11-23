@@ -138,9 +138,24 @@
     <string name="material_vacio_desc">Carga un PDF para crear tu biblioteca de estudio.</string>
     <string name="material_mis_documentos">Mis documentos · %1$d</string>
     <string name="repaso_titulo">Repasa tus contenidos</string>
-    <string name="repaso_desc">Genera preguntas a partir del texto de los PDF que has cargado.</string>
+    <string name="repaso_desc">Genera preguntas desde tus PDF y explora libros complementarios.</string>
     <string name="eliminar_titulo">Eliminar documento</string>
     <string name="eliminar_confirmar">¿Quieres eliminar «%1$s» de este dispositivo?</string>
+    <string name="openlibrary_titulo">Biblioteca abierta (Open Library)</string>
+    <string name="openlibrary_desc">Busca libros y recursos académicos complementarios. Open Library no es material oficial de ESFOCAR.</string>
+    <string name="openlibrary_campo_buscar">Buscar tema o título de libro</string>
+    <string name="openlibrary_btn_buscar">Buscar</string>
+    <string name="openlibrary_sugerencias">Búsquedas recomendadas:</string>
+    <string name="openlibrary_chip_derecho">Derecho</string>
+    <string name="openlibrary_chip_seguridad">Seguridad pública</string>
+    <string name="openlibrary_chip_criminologia">Criminología</string>
+    <string name="openlibrary_chip_constitucion">Constitución</string>
+    <string name="openlibrary_cargando">Consultando Open Library…</string>
+    <string name="openlibrary_error_buscar">No se pudo conectar a Open Library. Comprueba tu conexión a Internet.</string>
+    <string name="openlibrary_sin_resultados">No se encontraron libros para «%1$s».</string>
+    <string name="openlibrary_resultados_titulo">Resultados de búsqueda (%1$d)</string>
+    <string name="openlibrary_publicado">Publicado en %1$d</string>
+    <string name="openlibrary_ver_detalle">Ver ficha en Open Library</string>
 
     <!-- Inicio -->
     <string name="inicio_eyebrow_profesor">Panel docente</string>
@@ -220,7 +235,7 @@
     <string name="est_sin_tareas">No tienes tareas asignadas.</string>
     <string name="est_material">Material compartido</string>
     <string name="est_sin_material">Aún no te han compartido material.</string>
-    <string name="sesion_remota_no_disponible">No se pudo abrir la sesión del servidor. Puedes seguir usando los archivos locales; vuelve a intentarlo para compartirlos.</string>
+    <string name="sesion_remota_no_disponible">No se pudo conectar con el aula compartida. Comprueba que el servidor esté activo y vuelve a intentarlo; tus archivos locales siguen disponibles.</string>
     <string name="sesion_remota_requerida">Conéctate al servidor para usar el aula compartida.</string>
     <string name="sesion_remota_reintentar">Conectar con el aula compartida</string>
 
