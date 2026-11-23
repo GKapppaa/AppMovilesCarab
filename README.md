@@ -10,6 +10,7 @@ La app permite guardar material de estudio en el dispositivo, practicar con preg
 
 - Android nativo en Kotlin, Jetpack Compose y Material 3.
 - `applicationId`: `com.example.appcarab`; versión actual `1.0` (`versionCode 1`).
+- El idioma predeterminado de la app es español, aunque el sistema Android esté en otro idioma; inglés queda disponible como selección manual en Ajustes.
 - Navegación inferior: **Inicio**, **Aula**, **Material** y **Repaso**; el perfil se abre desde el icono superior.
 - La vista docente permite vincular estudiantes una vez y luego seleccionar al destinatario para compartir un PDF, enviar mensajes o asignar tareas.
 - Las preguntas de trivia se generan localmente desde texto extraído de los PDF del usuario; ese contenido nunca se envía a servicios externos.
