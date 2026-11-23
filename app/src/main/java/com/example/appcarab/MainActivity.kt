@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.appcarab.modelo.AppDatabase
 import com.example.appcarab.modelo.ApiRestRepository
+import com.example.appcarab.modelo.ApiDocumentosRepository
 import com.example.appcarab.modelo.SincronizacionPendiente
 import com.example.appcarab.modelo.AulaRepository
 import com.example.appcarab.modelo.DocumentoRepository
@@ -27,6 +28,7 @@ import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
+import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +40,7 @@ class MainActivity : ComponentActivity() {
         val textos = TextosAndroid(applicationContext)
         val preferenciasRepository = PreferenciasRepository(applicationContext)
         val apiRepository = ApiRestRepository()
+        val apiDocumentosRepository = ApiDocumentosRepository()
         val sincronizacion = SincronizacionPendiente(
             applicationContext,
             database.pendienteSincronizacionDao(),
@@ -45,8 +48,21 @@ class MainActivity : ComponentActivity() {
         )
         lifecycleScope.launch { sincronizacion.programarSiHayPendientes() }
         val repository = UsuarioRepository(database.usuarioDao(), sincronizacion)
-        val documentRepository = DocumentoRepository(applicationContext, database.documentoDao())
-        val aulaRepository = AulaRepository(database.aulaDao(), database.usuarioDao(), sincronizacion, textos)
+        val documentRepository = DocumentoRepository(
+            applicationContext,
+            database.documentoDao(),
+            database.aulaDao(),
+            textos,
+            apiDocumentosRepository,
+        )
+        val aulaRepository = AulaRepository(
+            database.aulaDao(),
+            database.usuarioDao(),
+            sincronizacion,
+            textos,
+            database.documentoDao(),
+            apiDocumentosRepository,
+        )
         val triviaRepository = TriviaPdfRepository(applicationContext, database.documentoDao())
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -84,6 +100,15 @@ class MainActivity : ComponentActivity() {
                 throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
             }
         }
+        val sesionRemotaFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(SesionRemotaVistaModelo::class.java)) {
+                    return SesionRemotaVistaModelo(apiDocumentosRepository, textos) as T
+                }
+                throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
+            }
+        }
 
         setContent {
             val preferencias by preferenciasRepository.preferencias.collectAsState()
@@ -97,11 +122,13 @@ class MainActivity : ComponentActivity() {
                 val documentsViewModel: DocumentosVistaModelo = viewModel(factory = documentsFactory)
                 val aulaViewModel: AulaVistaModelo = viewModel(factory = aulaFactory)
                 val triviaViewModel: TriviaVistaModelo = viewModel(factory = triviaFactory)
+                val sesionRemotaViewModel: SesionRemotaVistaModelo = viewModel(factory = sesionRemotaFactory)
                 AccesoApp(
                     viewModel = viewModel,
                     documentosViewModel = documentsViewModel,
                     aulaViewModel = aulaViewModel,
                     triviaViewModel = triviaViewModel,
+                    sesionRemotaViewModel = sesionRemotaViewModel,
                     preferencias = preferencias,
                     temaOscuro = oscuro,
                     preferenciasRepository = preferenciasRepository,
