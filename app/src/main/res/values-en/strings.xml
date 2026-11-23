@@ -251,7 +251,7 @@
     <string name="config_texto_vista_previa">This is how text will look in the app.</string>
     <string name="config_idioma">Language</string>
     <string name="idioma_sistema">System language</string>
-    <string name="config_idioma_desc">You can also change it in Android Settings › Apps › AppCarab › Language. Summaries and questions keep the language of each PDF.</string>
+    <string name="config_idioma_desc">Spanish is the default language. You can choose English here or in Android Settings › Apps › AppCarab › Language. PDFs and their questions keep the document language.</string>
     <string name="config_accesibilidad">Accessibility</string>
     <string name="config_movimiento">Reduce animations</string>
     <string name="config_movimiento_desc">Stops the photo carousel on the welcome screen.</string>

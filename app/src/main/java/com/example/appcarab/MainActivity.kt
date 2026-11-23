@@ -23,6 +23,7 @@ import com.example.appcarab.modelo.OpenLibraryRepository
 import com.example.appcarab.modelo.PreferenciasRepository
 import com.example.appcarab.modelo.TemaApp
 import com.example.appcarab.modelo.TextosAndroid
+import com.example.appcarab.modelo.IdiomaAplicacion
 import com.example.appcarab.ui.theme.AppCarabTheme
 import com.example.appcarab.vista.AccesoApp
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
@@ -36,6 +37,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        IdiomaAplicacion.asegurarEspanolPredeterminado(applicationContext)
         enableEdgeToEdge()
 
         val database = AppDatabase.getDatabase(applicationContext)
