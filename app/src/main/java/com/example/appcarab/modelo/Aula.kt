@@ -5,6 +5,12 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+data class AlumnoAula(
+    val codigoPerfil: String,
+    val nombre: String,
+    val aulaLocal: Boolean = false,
+)
+
 @Entity(
     tableName = "alumno_profesor",
     primaryKeys = ["profesorId", "alumnoId"],

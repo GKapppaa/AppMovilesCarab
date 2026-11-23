@@ -14,6 +14,15 @@ interface DocumentoDao {
     @Query("SELECT * FROM documento WHERE usuarioId = :usuarioId ORDER BY creadoEn DESC")
     suspend fun documentosDeUsuario(usuarioId: Int): List<Documento>
 
+    @Query("SELECT * FROM documento WHERE idRemoto = :idRemoto LIMIT 1")
+    suspend fun buscarPorIdRemoto(idRemoto: String): Documento?
+
+    @Query("SELECT * FROM documento WHERE id = :documentoId LIMIT 1")
+    suspend fun buscarPorId(documentoId: Int): Documento?
+
+    @Query("UPDATE documento SET idRemoto = :idRemoto, propietarioRemoto = :propietarioRemoto WHERE id = :documentoId")
+    suspend fun vincularRemoto(documentoId: Int, idRemoto: String, propietarioRemoto: String)
+
     @Insert
     suspend fun insertar(documento: Documento): Long
 
