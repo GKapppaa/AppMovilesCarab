@@ -136,9 +136,24 @@
     <string name="material_vacio_desc">Upload a PDF to start your study library.</string>
     <string name="material_mis_documentos">My documents · %1$d</string>
     <string name="repaso_titulo">Review your content</string>
-    <string name="repaso_desc">Generate questions from the text in the PDFs you uploaded.</string>
+    <string name="repaso_desc">Generate questions from your PDFs and explore complementary books.</string>
     <string name="eliminar_titulo">Delete document</string>
     <string name="eliminar_confirmar">Delete “%1$s” from this device?</string>
+    <string name="openlibrary_titulo">Open Library</string>
+    <string name="openlibrary_desc">Search complementary academic books and resources. Open Library is not official ESFOCAR material.</string>
+    <string name="openlibrary_campo_buscar">Search a topic or book title</string>
+    <string name="openlibrary_btn_buscar">Search</string>
+    <string name="openlibrary_sugerencias">Suggested searches:</string>
+    <string name="openlibrary_chip_derecho">Law</string>
+    <string name="openlibrary_chip_seguridad">Public safety</string>
+    <string name="openlibrary_chip_criminologia">Criminology</string>
+    <string name="openlibrary_chip_constitucion">Constitution</string>
+    <string name="openlibrary_cargando">Searching Open Library…</string>
+    <string name="openlibrary_error_buscar">Could not connect to Open Library. Check your internet connection.</string>
+    <string name="openlibrary_sin_resultados">No books found for “%1$s”.</string>
+    <string name="openlibrary_resultados_titulo">Search results (%1$d)</string>
+    <string name="openlibrary_publicado">Published in %1$d</string>
+    <string name="openlibrary_ver_detalle">Open on Open Library</string>
 
     <!-- Home -->
     <string name="inicio_eyebrow_profesor">Teacher dashboard</string>
@@ -218,7 +233,7 @@
     <string name="est_sin_tareas">You have no assignments.</string>
     <string name="est_material">Shared material</string>
     <string name="est_sin_material">No material has been shared with you yet.</string>
-    <string name="sesion_remota_no_disponible">Could not open a server session. Local files are still available; retry to share them.</string>
+    <string name="sesion_remota_no_disponible">Could not connect to the shared classroom. Check that the server is running and retry; local files are still available.</string>
     <string name="sesion_remota_requerida">Connect to the server to use the shared classroom.</string>
     <string name="sesion_remota_reintentar">Connect to the shared classroom</string>
 

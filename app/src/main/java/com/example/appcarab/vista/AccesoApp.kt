@@ -33,6 +33,7 @@ import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
 import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
+import com.example.appcarab.vistaModelo.OpenLibraryVistaModelo
 
 @Composable
 fun AccesoApp(
@@ -41,6 +42,7 @@ fun AccesoApp(
     aulaViewModel: AulaVistaModelo,
     triviaViewModel: TriviaVistaModelo,
     sesionRemotaViewModel: SesionRemotaVistaModelo,
+    openLibraryViewModel: OpenLibraryVistaModelo,
     preferencias: PreferenciasApp,
     temaOscuro: Boolean,
     preferenciasRepository: PreferenciasRepository,
@@ -50,6 +52,7 @@ fun AccesoApp(
     val estadoAula by aulaViewModel.estado.collectAsState()
     val estadoTrivia by triviaViewModel.estado.collectAsState()
     val estadoSesionRemota by sesionRemotaViewModel.estado.collectAsState()
+    val estadoOpenLibrary by openLibraryViewModel.estado.collectAsState()
     val context = LocalContext.current
     var uriEscaneo by rememberSaveable { mutableStateOf<String?>(null) }
     var configuracionAbierta by rememberSaveable { mutableStateOf(false) }
@@ -101,7 +104,6 @@ fun AccesoApp(
             sesionRemotaViewModel.abrir(estado.codigoPerfil, estado.rolUsuario)
         }
     }
-
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         if (configuracionAbierta) {
             PantallaConfiguracion(
@@ -209,6 +211,20 @@ fun AccesoApp(
                 onLogout = {
                     sesionRemotaViewModel.cerrar()
                     viewModel.cerrarSesion()
+                },
+                estadoOpenLibrary = estadoOpenLibrary,
+                onQueryChangeOpenLibrary = openLibraryViewModel::cambiarQuery,
+                onSearchOpenLibrary = { openLibraryViewModel.buscar(it) },
+                onEnterRepaso = {
+                    if (!estadoOpenLibrary.busquedaRealizada && !estadoOpenLibrary.cargando) {
+                        openLibraryViewModel.buscar()
+                    }
+                },
+                onOpenOpenLibraryLink = { url ->
+                    val uri = Uri.parse(url)
+                    if (uri.scheme == "https" && uri.host == "openlibrary.org") {
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                    }
                 },
             )
         }

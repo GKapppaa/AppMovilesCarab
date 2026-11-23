@@ -73,6 +73,7 @@ import com.example.appcarab.modelo.Documento
 import com.example.appcarab.ui.theme.Esfocar
 import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.EstadoTrivia
+import com.example.appcarab.vistaModelo.EstadoOpenLibrary
 
 private enum class SeccionMovil(
     @StringRes val titulo: Int,
@@ -126,6 +127,11 @@ internal fun InicioEstudiante(
     onEditProfile: () -> Unit,
     onSettings: () -> Unit,
     onLogout: () -> Unit,
+    estadoOpenLibrary: EstadoOpenLibrary = EstadoOpenLibrary(),
+    onQueryChangeOpenLibrary: (String) -> Unit = {},
+    onSearchOpenLibrary: (String) -> Unit = {},
+    onEnterRepaso: () -> Unit = {},
+    onOpenOpenLibraryLink: (String) -> Unit = {},
 ) {
     var seccionGuardada by rememberSaveable { mutableStateOf(SeccionMovil.INICIO.name) }
     var documentoAEliminar by remember { mutableStateOf<Documento?>(null) }
@@ -155,7 +161,10 @@ internal fun InicioEstudiante(
                 SeccionMovil.entries.forEach { destino ->
                     NavigationBarItem(
                         selected = seccion == destino,
-                        onClick = { seccionGuardada = destino.name },
+                        onClick = {
+                            if (destino == SeccionMovil.REPASO) onEnterRepaso()
+                            seccionGuardada = destino.name
+                        },
                         icon = { Icon(destino.icono, contentDescription = null) },
                         label = { Text(stringResource(destino.titulo), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         colors = NavigationBarItemDefaults.colors(
@@ -268,6 +277,12 @@ internal fun InicioEstudiante(
                             descripcion = stringResource(R.string.repaso_desc),
                         )
                         TriviaPanel(estadoTrivia, onLoadTrivia, onAnswerTrivia)
+                        OpenLibraryPanel(
+                            estado = estadoOpenLibrary,
+                            onQueryChange = onQueryChangeOpenLibrary,
+                            onSearch = onSearchOpenLibrary,
+                            onOpenLink = onOpenOpenLibraryLink,
+                        )
                     }
                 }
             }
