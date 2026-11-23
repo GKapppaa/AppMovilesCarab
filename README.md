@@ -12,7 +12,8 @@ La app permite guardar material de estudio en el dispositivo, practicar con preg
 - `applicationId`: `com.example.appcarab`; versión actual `1.0` (`versionCode 1`).
 - Navegación inferior: **Inicio**, **Aula**, **Material** y **Repaso**; el perfil se abre desde el icono superior.
 - La vista docente permite vincular estudiantes una vez y luego seleccionar al destinatario para compartir un PDF, enviar mensajes o asignar tareas.
-- Las preguntas se generan localmente desde texto extraído de los PDF del usuario. No se consulta Open Trivia DB ni se envía el contenido del documento a servicios externos.
+- Las preguntas de trivia se generan localmente desde texto extraído de los PDF del usuario; ese contenido nunca se envía a servicios externos.
+- En Repaso se añade un buscador complementario de libros desde Open Library; no sustituye la trivia privada basada en PDF.
 - Los registros de aula existentes siguen sincronizándose best-effort con una bandeja Room y WorkManager.
 - Los PDF se almacenan localmente y en el backend cuando hay sesión/conectividad; el profesor puede compartirlos entre instalaciones y el estudiante los descarga para uso offline.
 - Mensajes y tareas todavía se mantienen locales; el intercambio remoto implementado en esta entrega es la vinculación de perfiles y la compartición de PDF.
@@ -97,7 +98,7 @@ En un teléfono por USB/ADB se puede usar el puente de igual forma. Si se utiliz
 
 ## API académica
 
-Spring Boot 3.5.7, Java 21, Spring Data JPA y H2. La API almacena registros JSON genéricos identificados por tipo y clave; el `contenido` se guarda como texto JSON opaco, sin un esquema de dominio rígido.
+Spring Boot 3.5.7, Java 21, Spring Data JPA y **H2**. El backend de este repositorio no está configurado para PostgreSQL: usa H2 persistente al ejecutar y H2 en memoria en sus pruebas. La API almacena registros JSON genéricos identificados por tipo y clave; el `contenido` se guarda como texto JSON opaco, sin un esquema de dominio rígido.
 
 Tipos permitidos:
 
@@ -170,6 +171,19 @@ La consola H2, habilitada para desarrollo local, está en `http://localhost:8081
 - Contraseña: vacía
 
 La interfaz ya no muestra un botón de “Comprobar conexión”. La API se usa internamente al sincronizar datos; para comprobar el servidor en desarrollo se usa `/api/v1/health` desde `curl` o el navegador del computador.
+
+### API externa complementaria: Open Library
+
+En la sección **Repaso** hay un buscador de libros complementarios que consume Open Library directamente desde Android con Retrofit:
+
+- Endpoint: `https://openlibrary.org/search.json`
+- Parámetros usados: `q`, `limit=10` y `fields=key,title,author_name,first_publish_year,cover_i,subject`.
+- Permite escribir una búsqueda o usar sugerencias como Derecho, Seguridad Pública, Criminología y Constitución.
+- Muestra título, autores, año, temas y un enlace a la ficha del libro en Open Library.
+- Es un catálogo externo complementario, **no material oficial de ESFOCAR**. La trivia principal sigue generándose localmente desde los PDF; el contenido de esos PDF nunca se envía a Open Library.
+- Requiere Internet; si falla, la biblioteca local, el material propio y la trivia PDF siguen funcionando.
+
+Referencia: [Open Library Search API](https://openlibrary.org/developers/api). Esta API externa no debe confundirse con el microservicio propio Spring Boot para usuarios y PDF.
 
 ## Sincronización, almacenamiento y límites
 
@@ -246,12 +260,16 @@ Tecnologías:
 
 Hay pruebas para validadores, resumen y trivia local, repositorios de usuario/API, DAO y bienvenida. La rama `hernan-desarrollo` añadió fakes y pruebas unitarias/instrumentadas para esos componentes.
 
-- `testDebugUnitTest`: pruebas JVM de la app (incluye repositorios y validadores).
+- `testDebugUnitTest`: pruebas JVM de la app (incluye repositorios, validadores y Open Library).
 - `compileDebugAndroidTestKotlin`: comprueba que compilen las pruebas instrumentadas.
-- `connectedDebugAndroidTest`: ejecuta pruebas de UI/Room y requiere emulador o dispositivo ADB.
-- `./gradlew -p backend test`: pruebas MockMvc de salud y CRUD de la API.
+- `connectedDebugAndroidTest`: se ejecutó en el emulador; 6 pruebas instrumentadas pasaron después de actualizar AndroidX Test/Espresso.
+- `./gradlew -p backend test`: 9 pruebas MockMvc de salud, CRUD, sesiones y ciclo de vida/aislamiento de PDF pasan con H2 en memoria.
+
+Última verificación local: `testDebugUnitTest`, `connectedDebugAndroidTest` (emulador) y `lintDebug` pasaron; también `./gradlew -p backend test`. La rama de Gustavo aportó cuatro pruebas unitarias para el flujo Open Library.
 
 **Importante:** hay pruebas implementadas, pero el proyecto todavía no configura JaCoCo ni tiene un reporte que demuestre el 80% de cobertura lógica exigido por la pauta.
+
+Para usar PostgreSQL hace falta configuración y credenciales propias. El PostgreSQL que pudiera estar instalado en el equipo no forma parte del proyecto y no se usa en estas pruebas; no se conecta ni modifica sin que se proporcione la configuración autorizada.
 
 APK Debug:
 
@@ -268,10 +286,10 @@ Revisión basada en la pauta adjunta de DSY1105. Es un diagnóstico del estado d
 | Indicador | Estado observado | Qué falta para evidenciar el nivel destacado |
 |---|---|---|
 | **IE 3.1.1 — Pantallas, formularios y flujos (15%)** | Implementación sustancial: acceso, Inicio, Aula, Material, Repaso y perfil. La bienvenida tiene pruebas instrumentadas; el flujo docente se probó en emulador. | Hacer regresión completa de navegación, validación, edición, PDFs, tareas, mensajes y trivia en un dispositivo de defensa. Las pruebas actuales no cubren todos los flujos de UI. |
-| **IE 3.1.2 — Microservicio y base de datos (15%)** | Spring Boot, H2 persistente y CRUD genérico para cinco tipos de registro; las pruebas del backend pasan. | Probar arranque limpio y endpoints durante la defensa. Confirmar con el docente que un microservicio académico cubre el alcance solicitado. |
+| **IE 3.1.2 — Microservicio y base de datos (15%)** | Spring Boot/Java, H2 persistente, CRUD genérico y API de archivos; pruebas del backend pasan. | El repositorio usa H2, no PostgreSQL. Si la pauta/defensa exige PostgreSQL, falta acordar y configurar esa base y probar contra ella. |
 | **IE 3.1.3 — Integración y CRUD desde la app (15%)** | Sesiones bearer de demo; profesor/alumno se vinculan en Spring Boot; PDF se sube, lista, comparte, descarga y elimina con alcance por perfil. | Los mensajes y tareas siguen sin flujos de lectura/escritura remotos completos; su sincronización genérica no llena Room en otro dispositivo. Probar PDF compartidos en dos instalaciones. |
-| **IE 3.1.4 — API externa visible (15%)** | **Sigue pendiente.** El almacenamiento de PDF es un microservicio propio, no una API externa de terceros. La trivia usa PDF local deliberadamente. | Acordar con el docente una API externa apropiada al alcance ESFOCAR que no envíe PDF privados, e integrarla por Retrofit y mostrarla en la app sin desplazar las funciones principales. |
-| **IE 3.2.1 — Cobertura lógica ≥80% (15%)** | Hay 20 pruebas JVM, 6 instrumentadas y 9 de backend, incluyendo autorización de propiedad/compartición y almacenamiento PDF. Pasan las JVM/backend; las instrumentadas compilan. | No hay reporte JaCoCo ni evidencia cuantitativa de 80%; las instrumentadas no se ejecutaron en esta verificación. Medir cobertura lógica y ampliar pruebas de ViewModel/Repository/aula. |
+| **IE 3.1.4 — API externa visible (15%)** | Open Library se consume con Retrofit y se muestra en Repaso como fuente complementaria; los PDF permanecen locales. | Demostrarla durante la defensa con Internet y explicar que su catálogo no es material oficial institucional. |
+| **IE 3.2.1 — Cobertura lógica ≥80% (15%)** | Hay 24 pruebas JVM, 6 instrumentadas y 9 de backend, incluyendo Open Library y acceso/compartición de PDF. Las suites configuradas pasan. | No hay reporte JaCoCo ni evidencia cuantitativa de 80%. Medir cobertura lógica y ampliar pruebas de ViewModel/Repository/aula. |
 | **IE 3.3.1 — APK Release firmado (10%)** | Se genera APK Debug, firmado con la clave de depuración. | **Falta** configurar firma Release, generar/probar el APK firmado y documentar el proceso. No hay `.jks` de entrega. Proteger la clave y contraseñas; no subir secretos a un repo público sin acordar una entrega segura. |
 | **IE 3.3.2 — GitHub y Trello (15%)** | Hay historial de commits de Daniel y Hernán; existe la rama `hernan-desarrollo`. | Falta evidencia de tablero/Trello, tareas distribuidas y capturas/enlace para AVA. La integración local de `hernan-desarrollo` debe subirse a `Daniel-Branch` para que esté consolidada en la rama a entregar. |
 
@@ -282,7 +300,7 @@ Revisión basada en la pauta adjunta de DSY1105. Es un diagnóstico del estado d
 3. Configurar firma Release y validar instalación del APK firmado.
 4. Configurar cobertura y llegar a ≥80%; ejecutar también las pruebas instrumentadas.
 5. Completar regresión manual de todos los recorridos y guardar evidencia.
-6. Acordar una API externa de dominio con el docente; añadir enlace/capturas de Trello y GitHub al README y revisar requisitos AVA.
+6. Añadir enlace/capturas de Trello y GitHub al README y revisar requisitos AVA.
 
 La pauta advierte que cambios al repositorio después de la fecha límite pueden implicar nota 1.0; confirmar el plazo antes de publicar la entrega.
 
