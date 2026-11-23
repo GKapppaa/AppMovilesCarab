@@ -8,16 +8,31 @@ El desarrollo debe mantenerse como un prototipo académico: se utilizarán datos
 
 ## Integrantes
 
-- Gustavo Oporto
+- Daniel Pinto
+- Hernán García
 
 ## Instalación y ejecución
 
 1. Clonar el repositorio y abrir la carpeta raíz en Android Studio.
-2. Usar JDK 17 y sincronizar Gradle.
+2. Usar JDK 21 y sincronizar Gradle.
 3. Ejecutar `app` en un emulador Android o dispositivo físico.
 4. Para compilar desde terminal: `./gradlew assembleDebug`; para las pruebas: `./gradlew testDebugUnitTest`.
+5. Para iniciar el backend Spring Boot desde la raíz: `./gradlew -p backend bootRun`. Usa H2 en `backend/data/esfocar`.
+6. Conecta un emulador o dispositivo Android por ADB y ejecuta **Run ▶** en Android Studio o `./gradlew installDebug`. La instalación configura automáticamente el reenvío del puerto 8081; el mapeo se pierde si se reinicia el emulador, así que vuelve a ejecutar la app desde Android Studio. La app usa `http://127.0.0.1:8081/api/v1/`. El backend debe seguir ejecutándose en el computador. Para cambiar la URL, usa `-PapiBaseUrl=http://<host>:8081/api/v1/`.
 
-Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID `EST-######` o `PROF-######`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
+## API académica
+
+El servicio Spring Boot expone:
+
+- `GET /api/v1/health`
+- CRUD `GET /api/v1/{perfiles|secciones|mensajes|materiales|tareas}`
+- `GET`, `PUT` y `DELETE /api/v1/{tipo}/{clave}`; `POST /api/v1/{tipo}`
+
+Los registros usan una clave única por tipo y un campo `contenido` JSON para mantener el contrato flexible durante el MVP. La consola H2 local está en `/db-console`.
+
+La app usa Retrofit para sincronizar perfiles, secciones, mensajes, materiales y tareas con el backend cuando está disponible. Los cambios pendientes quedan en una bandeja local Room y WorkManager los reintenta al recuperar conectividad o al volver a abrir la app; Room mantiene disponibles los datos aunque el backend se detenga. La trivia se genera localmente usando texto seleccionable extraído de los PDF que carga cada usuario; el contenido del PDF no se envía a servicios externos y los escaneos requieren OCR.
+
+Las cuentas, IDs y códigos de esta versión son de demostración. Los perfiles reciben un ID global de prueba `EST-UUID` o `PROF-UUID`. El código docente local es `DOCENTE-DEMO-2026`; no representa una verificación de Carabineros ni debe usarse en producción.
 
 El registro requiere entre 2 y 5 partes de nombre válidas (sin números ni símbolos ajenos a nombres) y una contraseña de 8 a 64 caracteres con mayúscula, minúscula, número y carácter especial, sin espacios.
 

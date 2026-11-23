@@ -1,12 +1,16 @@
 package com.example.appcarab.modelo
 
 import java.security.SecureRandom
+import java.util.UUID
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class UsuarioRepository(private val usuarioDao: UsuarioDao) {
+class UsuarioRepository(
+    private val usuarioDao: UsuarioDao,
+    private val sincronizacion: SincronizacionPendiente,
+) {
 
     suspend fun registrarUsuario(nombre: String, email: String, password: String, role: String): Usuario? = withContext(Dispatchers.IO) {
         val correoNormalizado = email.trim().lowercase()
@@ -23,8 +27,14 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
             )
             val id = usuarioDao.insertar(usuario).toInt()
             val prefijo = if (role == "PROFESOR") "PROF" else "EST"
-            val creado = usuario.copy(id = id, codigoPerfil = "$prefijo-${id.toString().padStart(6, '0')}")
+            val codigo = "$prefijo-${UUID.randomUUID().toString().uppercase()}"
+            val creado = usuario.copy(id = id, codigoPerfil = codigo)
             usuarioDao.actualizar(creado)
+            sincronizacion.sincronizar(
+                "perfiles",
+                creado.codigoPerfil,
+                """{"id":"${creado.codigoPerfil}","nombre":"${creado.nombre}","correo":"${creado.email}","rol":"${creado.role}"}""",
+            )
             creado
         }
     }
@@ -35,7 +45,13 @@ class UsuarioRepository(private val usuarioDao: UsuarioDao) {
         if (existente != null && existente.id != usuarioId) return@withContext null
         val old = usuarioDao.buscarPorId(usuarioId) ?: return@withContext null
         usuarioDao.actualizarPerfil(usuarioId, nombre.trim(), correoNormalizado)
-        old.copy(nombre = nombre.trim(), email = correoNormalizado)
+        val actualizado = old.copy(nombre = nombre.trim(), email = correoNormalizado)
+        sincronizacion.sincronizar(
+            "perfiles",
+            actualizado.codigoPerfil,
+            """{"id":"${actualizado.codigoPerfil}","nombre":"${actualizado.nombre}","correo":"${actualizado.email}","rol":"${actualizado.role}"}""",
+        )
+        actualizado
     }
 
     suspend fun validarSesion(email: String, password: String): Usuario? = withContext(Dispatchers.IO) {

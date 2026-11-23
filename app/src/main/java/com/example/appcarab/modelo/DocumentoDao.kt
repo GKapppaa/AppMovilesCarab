@@ -11,6 +11,9 @@ interface DocumentoDao {
     @Query("SELECT * FROM documento WHERE usuarioId = :usuarioId ORDER BY creadoEn DESC")
     fun observarDocumentos(usuarioId: Int): Flow<List<Documento>>
 
+    @Query("SELECT * FROM documento WHERE usuarioId = :usuarioId ORDER BY creadoEn DESC")
+    suspend fun documentosDeUsuario(usuarioId: Int): List<Documento>
+
     @Insert
     suspend fun insertar(documento: Documento): Long
 
@@ -19,4 +22,7 @@ interface DocumentoDao {
 
     @Query("UPDATE documento SET categoria = :categoria WHERE id = :documentoId")
     suspend fun actualizarCategoria(documentoId: Int, categoria: String)
+
+    @Query("UPDATE documento SET textoExtraido = :texto WHERE id = :documentoId")
+    suspend fun actualizarTextoExtraido(documentoId: Int, texto: String)
 }
