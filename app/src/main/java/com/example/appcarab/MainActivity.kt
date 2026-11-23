@@ -19,6 +19,7 @@ import com.example.appcarab.modelo.AulaRepository
 import com.example.appcarab.modelo.DocumentoRepository
 import com.example.appcarab.modelo.UsuarioRepository
 import com.example.appcarab.modelo.TriviaPdfRepository
+import com.example.appcarab.modelo.OpenLibraryRepository
 import com.example.appcarab.modelo.PreferenciasRepository
 import com.example.appcarab.modelo.TemaApp
 import com.example.appcarab.modelo.TextosAndroid
@@ -29,6 +30,7 @@ import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
 import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
+import com.example.appcarab.vistaModelo.OpenLibraryVistaModelo
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -64,6 +66,7 @@ class MainActivity : ComponentActivity() {
             apiDocumentosRepository,
         )
         val triviaRepository = TriviaPdfRepository(applicationContext, database.documentoDao())
+        val openLibraryRepository = OpenLibraryRepository()
         val factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -109,6 +112,15 @@ class MainActivity : ComponentActivity() {
                 throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
             }
         }
+        val openLibraryFactory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(OpenLibraryVistaModelo::class.java)) {
+                    return OpenLibraryVistaModelo(openLibraryRepository, textos) as T
+                }
+                throw IllegalArgumentException("ViewModel desconocido: ${modelClass.name}")
+            }
+        }
 
         setContent {
             val preferencias by preferenciasRepository.preferencias.collectAsState()
@@ -123,12 +135,14 @@ class MainActivity : ComponentActivity() {
                 val aulaViewModel: AulaVistaModelo = viewModel(factory = aulaFactory)
                 val triviaViewModel: TriviaVistaModelo = viewModel(factory = triviaFactory)
                 val sesionRemotaViewModel: SesionRemotaVistaModelo = viewModel(factory = sesionRemotaFactory)
+                val openLibraryViewModel: OpenLibraryVistaModelo = viewModel(factory = openLibraryFactory)
                 AccesoApp(
                     viewModel = viewModel,
                     documentosViewModel = documentsViewModel,
                     aulaViewModel = aulaViewModel,
                     triviaViewModel = triviaViewModel,
                     sesionRemotaViewModel = sesionRemotaViewModel,
+                    openLibraryViewModel = openLibraryViewModel,
                     preferencias = preferencias,
                     temaOscuro = oscuro,
                     preferenciasRepository = preferenciasRepository,
