@@ -29,7 +29,7 @@ class OpenLibraryTest {
             ),
         )
 
-        override suspend fun buscarLibros(query: String, limit: Int): OpenLibrarySearchResponse {
+        override suspend fun buscarLibros(query: String, limit: Int, fields: String): OpenLibrarySearchResponse {
             queryRecibida = query
             if (lanzarError) throw IllegalStateException("Error de red simulado")
             return OpenLibrarySearchResponse(numFound = docsADevolver.size, docs = docsADevolver)

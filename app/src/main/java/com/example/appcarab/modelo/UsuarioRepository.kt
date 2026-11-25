@@ -2,6 +2,7 @@ package com.example.appcarab.modelo
 
 import java.security.SecureRandom
 import java.util.UUID
+import com.google.gson.JsonObject
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import kotlinx.coroutines.Dispatchers
@@ -56,7 +57,7 @@ class UsuarioRepository(
 
     suspend fun validarSesion(email: String, password: String): Usuario? = withContext(Dispatchers.IO) {
         val usuario = usuarioDao.buscarPorEmail(email.trim().lowercase())
-        when {
+        val validado = when {
             usuario == null -> null
             usuario.passwordSalt.isBlank() && usuario.passwordHash == password -> {
                 val salt = ByteArray(SALT_BYTES).also(SecureRandom()::nextBytes)
@@ -67,6 +68,19 @@ class UsuarioRepository(
             usuario.passwordSalt.isBlank() -> null
             else -> usuario.takeIf { hashPassword(password, it.passwordSalt.hexToBytes()) == it.passwordHash }
         }
+        if (validado != null && validado.codigoPerfil.isNotBlank()) {
+            sincronizacion.sincronizar(
+                "perfiles",
+                validado.codigoPerfil,
+                JsonObject().apply {
+                    addProperty("id", validado.codigoPerfil)
+                    addProperty("nombre", validado.nombre)
+                    addProperty("correo", validado.email)
+                    addProperty("rol", validado.role)
+                }.toString(),
+            )
+        }
+        validado
     }
 
     private fun hashPassword(password: String, salt: ByteArray): String {

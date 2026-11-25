@@ -80,7 +80,6 @@ private val OPCIONES_TEXTO = listOf(
 )
 
 private val OPCIONES_IDIOMA = listOf(
-    IdiomaApp.SISTEMA to R.string.idioma_sistema,
     IdiomaApp.ESPANOL to R.string.idioma_es,
     IdiomaApp.INGLES to R.string.idioma_en,
 )

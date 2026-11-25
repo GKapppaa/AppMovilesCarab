@@ -44,6 +44,8 @@ interface OpenLibraryService {
     suspend fun buscarLibros(
         @Query("q") query: String,
         @Query("limit") limit: Int = 10,
+        @Query("fields") fields: String =
+            "key,title,author_name,first_publish_year,cover_i,subject",
     ): OpenLibrarySearchResponse
 }
 

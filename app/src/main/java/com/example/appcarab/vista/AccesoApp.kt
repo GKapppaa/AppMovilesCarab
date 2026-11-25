@@ -30,6 +30,7 @@ import com.example.appcarab.vistaModelo.DocumentosVistaModelo
 import com.example.appcarab.vistaModelo.InicioSesionVistaModelo
 import com.example.appcarab.vistaModelo.PantallaAcceso
 import com.example.appcarab.vistaModelo.AulaVistaModelo
+import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
 import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
 import com.example.appcarab.vistaModelo.OpenLibraryVistaModelo
@@ -103,12 +104,6 @@ fun AccesoApp(
             sesionRemotaViewModel.abrir(estado.codigoPerfil, estado.rolUsuario)
         }
     }
-    LaunchedEffect(estado.pantalla) {
-        if (estado.pantalla == PantallaAcceso.INICIO && !estadoOpenLibrary.busquedaRealizada) {
-            openLibraryViewModel.buscar()
-        }
-    }
-
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         if (configuracionAbierta) {
             PantallaConfiguracion(
@@ -220,10 +215,15 @@ fun AccesoApp(
                 estadoOpenLibrary = estadoOpenLibrary,
                 onQueryChangeOpenLibrary = openLibraryViewModel::cambiarQuery,
                 onSearchOpenLibrary = { openLibraryViewModel.buscar(it) },
+                onEnterRepaso = {
+                    if (!estadoOpenLibrary.busquedaRealizada && !estadoOpenLibrary.cargando) {
+                        openLibraryViewModel.buscar()
+                    }
+                },
                 onOpenOpenLibraryLink = { url ->
-                    runCatching {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        context.startActivity(intent)
+                    val uri = Uri.parse(url)
+                    if (uri.scheme == "https" && uri.host == "openlibrary.org") {
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
                     }
                 },
             )

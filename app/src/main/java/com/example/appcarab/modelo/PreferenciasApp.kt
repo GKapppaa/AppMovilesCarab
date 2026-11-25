@@ -18,9 +18,8 @@ enum class TamanoTexto(val escala: Float) {
     MUY_GRANDE(1.3f),
 }
 
-/** Idiomas con traducción completa de la interfaz. [etiqueta] vacía = seguir al sistema. */
+/** Idiomas disponibles para seleccionar manualmente en Ajustes. */
 enum class IdiomaApp(val etiqueta: String) {
-    SISTEMA(""),
     ESPANOL("es"),
     INGLES("en"),
 }
@@ -74,13 +73,21 @@ class PreferenciasRepository(context: Context) {
 object IdiomaAplicacion {
     fun actual(context: Context): IdiomaApp {
         val locales = context.getSystemService(LocaleManager::class.java).applicationLocales
-        if (locales.isEmpty) return IdiomaApp.SISTEMA
-        return IdiomaApp.entries.firstOrNull { it.etiqueta == locales[0].language } ?: IdiomaApp.SISTEMA
+        if (locales.isEmpty) return IdiomaApp.ESPANOL
+        return IdiomaApp.entries.firstOrNull { it.etiqueta == locales[0].language } ?: IdiomaApp.ESPANOL
+    }
+
+    /** Primer inicio o idioma de sistema restablecido: usar español como idioma principal. */
+    fun asegurarEspanolPredeterminado(context: Context) {
+        val localeManager = context.getSystemService(LocaleManager::class.java)
+        if (localeManager.applicationLocales.isEmpty) {
+            localeManager.applicationLocales = LocaleList.forLanguageTags(IdiomaApp.ESPANOL.etiqueta)
+        }
     }
 
     fun aplicar(context: Context, idioma: IdiomaApp) {
         context.getSystemService(LocaleManager::class.java).applicationLocales =
-            if (idioma == IdiomaApp.SISTEMA) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(idioma.etiqueta)
+            LocaleList.forLanguageTags(idioma.etiqueta)
     }
 }
 
