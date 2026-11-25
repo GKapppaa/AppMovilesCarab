@@ -3,7 +3,9 @@ package com.example.appcarab.vistaModelo
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appcarab.R
 import com.example.appcarab.modelo.Documento
+import com.example.appcarab.modelo.Textos
 import com.example.appcarab.modelo.DocumentoDao
 import com.example.appcarab.modelo.DocumentoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,39 +22,61 @@ data class EstadoDocumentos(
     val mensajeEsError: Boolean = false,
 )
 
-class DocumentosVistaModelo(private val repository: DocumentoRepository, private val dao: DocumentoDao) : ViewModel() {
+class DocumentosVistaModelo(
+    private val repository: DocumentoRepository,
+    private val dao: DocumentoDao,
+    private val textos: Textos,
+) : ViewModel() {
     private val _estado = MutableStateFlow(EstadoDocumentos())
     val estado: StateFlow<EstadoDocumentos> = _estado.asStateFlow()
     private var usuarioObservado: Int? = null
+    private var tokenObservado: String? = null
     private var observacionJob: Job? = null
 
-    fun observar(usuarioId: Int) {
-        if (usuarioObservado == usuarioId) return
-        usuarioObservado = usuarioId
-        observacionJob?.cancel()
-        _estado.value = EstadoDocumentos()
-        observacionJob = viewModelScope.launch {
-            dao.observarDocumentos(usuarioId).collectLatest { documentos ->
-                _estado.value = _estado.value.copy(documentos = documentos)
+    fun observar(usuarioId: Int, codigoPerfil: String, token: String?) {
+        if (usuarioObservado != usuarioId) {
+            usuarioObservado = usuarioId
+            tokenObservado = null
+            observacionJob?.cancel()
+            _estado.value = EstadoDocumentos()
+            observacionJob = viewModelScope.launch {
+                dao.observarDocumentos(usuarioId).collectLatest { documentos ->
+                    _estado.value = _estado.value.copy(documentos = documentos)
+                }
+            }
+        }
+        if (token != null && token != tokenObservado) {
+            tokenObservado = token
+            viewModelScope.launch {
+                runCatching { repository.importarCompartidos(usuarioId, token) }
+                    .onFailure {
+                        _estado.value = _estado.value.copy(
+                            mensaje = textos.get(R.string.doc_error_compartidos),
+                            mensajeEsError = true,
+                        )
+                    }
             }
         }
     }
 
-    fun agregar(usuarioId: Int, uri: Uri) {
+    fun agregar(usuarioId: Int, codigoPerfil: String, token: String?, uri: Uri) {
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
-            runCatching { repository.agregarPdf(usuarioId, uri) }
-                .onSuccess {
+            runCatching { repository.agregarPdf(usuarioId, codigoPerfil, token, uri) }
+                .onSuccess { documento ->
                     _estado.value = _estado.value.copy(
                         cargando = false,
-                        mensaje = "PDF agregado y resumido en el dispositivo.",
+                        mensaje = textos.get(
+                            if (documento.idRemoto != null) R.string.doc_agregado_remoto
+                            else R.string.doc_agregado_local,
+                        ),
                         mensajeEsError = false,
                     )
                 }
                 .onFailure {
                     _estado.value = _estado.value.copy(
                         cargando = false,
-                        mensaje = it.message ?: "No se pudo procesar el PDF.",
+                        mensaje = it.message ?: textos.get(R.string.doc_error_procesar),
                         mensajeEsError = true,
                     )
                 }
@@ -61,22 +85,59 @@ class DocumentosVistaModelo(private val repository: DocumentoRepository, private
 
     fun uriTemporalEscaneo(usuarioId: Int): Uri = repository.uriTemporalEscaneo(usuarioId)
 
-    fun agregarEscaneo(usuarioId: Int, uri: Uri) {
+    fun agregarEscaneo(usuarioId: Int, codigoPerfil: String, token: String?, uri: Uri) {
         viewModelScope.launch {
             _estado.value = _estado.value.copy(cargando = true, mensaje = null)
-            runCatching { repository.agregarEscaneo(usuarioId, uri) }
-                .onSuccess { _estado.value = _estado.value.copy(cargando = false, mensaje = "Escaneo guardado como PDF.") }
+            runCatching { repository.agregarEscaneo(usuarioId, codigoPerfil, token, uri) }
+                .onSuccess { documento ->
+                    _estado.value = _estado.value.copy(
+                        cargando = false,
+                        mensaje = textos.get(
+                            if (documento.idRemoto != null) R.string.doc_escaneo_guardado
+                            else R.string.doc_escaneo_local,
+                        ),
+                        mensajeEsError = false,
+                    )
+                }
                 .onFailure {
-                    _estado.value = _estado.value.copy(cargando = false, mensaje = it.message ?: "No se pudo guardar el escaneo.", mensajeEsError = true)
+                    _estado.value = _estado.value.copy(cargando = false, mensaje = it.message ?: textos.get(R.string.doc_error_escaneo), mensajeEsError = true)
                 }
         }
     }
 
-    fun eliminar(documento: Documento) {
+    fun eliminar(documento: Documento, codigoPerfil: String, token: String?) {
         viewModelScope.launch {
-            runCatching { repository.eliminar(documento) }
-                .onSuccess { _estado.value = _estado.value.copy(mensaje = "Documento eliminado.", mensajeEsError = false) }
-                .onFailure { _estado.value = _estado.value.copy(mensaje = "No se pudo eliminar el documento.", mensajeEsError = true) }
+            runCatching { repository.eliminar(documento, codigoPerfil, token) }
+                .onSuccess { _estado.value = _estado.value.copy(mensaje = textos.get(R.string.doc_eliminado), mensajeEsError = false) }
+                .onFailure { _estado.value = _estado.value.copy(mensaje = textos.get(R.string.doc_error_eliminar), mensajeEsError = true) }
+        }
+    }
+
+    fun subirAlServidor(documento: Documento, codigoPerfil: String, token: String?) {
+        if (token == null) {
+            _estado.value = _estado.value.copy(
+                mensaje = textos.get(R.string.sesion_remota_requerida),
+                mensajeEsError = true,
+            )
+            return
+        }
+        viewModelScope.launch {
+            _estado.value = _estado.value.copy(cargando = true, mensaje = null)
+            runCatching { repository.subirExistente(documento, codigoPerfil, token) }
+                .onSuccess {
+                    _estado.value = _estado.value.copy(
+                        cargando = false,
+                        mensaje = textos.get(R.string.doc_agregado_remoto),
+                        mensajeEsError = false,
+                    )
+                }
+                .onFailure {
+                    _estado.value = _estado.value.copy(
+                        cargando = false,
+                        mensaje = it.message ?: textos.get(R.string.doc_error_procesar),
+                        mensajeEsError = true,
+                    )
+                }
         }
     }
 

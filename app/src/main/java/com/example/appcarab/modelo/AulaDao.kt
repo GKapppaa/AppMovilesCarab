@@ -27,13 +27,13 @@ interface AulaDao {
     suspend fun asignarAlumno(relacion: AlumnoProfesor): Long
 
     @Insert
-    suspend fun enviarMensaje(mensaje: MensajeDocente)
+    suspend fun enviarMensaje(mensaje: MensajeDocente): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun compartirMaterial(material: MaterialCompartido): Long
 
     @Insert
-    suspend fun crearTarea(tarea: TareaDocente)
+    suspend fun crearTarea(tarea: TareaDocente): Long
 
     @Query("SELECT EXISTS(SELECT 1 FROM documento WHERE id = :documentoId AND usuarioId = :profesorId)")
     suspend fun documentoDelProfesor(documentoId: Int, profesorId: Int): Boolean

@@ -1,0 +1,10 @@
+.git
+.idea
+.gradle
+.kotlin
+app
+build
+**/build
+backend/data
+local.properties
+*.iml
