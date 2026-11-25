@@ -70,6 +70,15 @@
     <string name="doc_error_eliminar">No se pudo eliminar el documento.</string>
     <string name="doc_error_camara">La cámara no entregó una imagen legible.</string>
     <string name="doc_error_abrir_archivo">No se pudo abrir el archivo seleccionado.</string>
+    <string name="doc_agregado_remoto">PDF guardado y disponible para compartir con tu aula.</string>
+    <string name="doc_subir_para_compartir">Subir al aula para compartir</string>
+    <string name="doc_agregado_local">PDF guardado en este dispositivo. Inicia sesión con conexión para poder compartirlo.</string>
+    <string name="doc_escaneo_local">Escaneo guardado localmente. Para compartirlo, vuelve a iniciar sesión con conexión.</string>
+    <string name="doc_error_demasiado_grande">El PDF compartido supera el máximo permitido.</string>
+    <string name="doc_error_pdf_invalido">El archivo recibido no es un PDF válido.</string>
+    <string name="doc_pdf_sin_texto">Documento compartido. No se detectó texto seleccionable.</string>
+    <string name="doc_error_compartidos">No se pudo actualizar el material compartido desde el servidor.</string>
+    <string name="doc_error_sesion_propietario">La sesión del servidor no coincide con el propietario del documento.</string>
     <string name="archivo_no_encontrado">No se encontró el archivo guardado.</string>
     <string name="abrir_pdf_selector">Abrir PDF</string>
     <string name="sin_app_pdf">No hay una aplicación disponible para abrir PDF.</string>
@@ -89,6 +98,8 @@
     <string name="aula_descripcion_larga">La descripción debe tener entre 5 y 1000 caracteres.</string>
     <string name="aula_mensaje_enviado">Mensaje enviado.</string>
     <string name="aula_material_compartido">Material compartido.</string>
+    <string name="aula_pdf_debe_subirse">Este PDF solo está en el dispositivo. Cárgalo con una sesión conectada antes de compartirlo.</string>
+    <string name="aula_pdf_pendiente">Subir primero</string>
     <string name="aula_tarea_asignada">Tarea asignada.</string>
     <string name="sync_remoto">Sincronizado con el servicio remoto.</string>
     <string name="sync_pendiente">Guardado localmente; se sincronizará al volver la conexión.</string>
@@ -127,9 +138,24 @@
     <string name="material_vacio_desc">Carga un PDF para crear tu biblioteca de estudio.</string>
     <string name="material_mis_documentos">Mis documentos · %1$d</string>
     <string name="repaso_titulo">Repasa tus contenidos</string>
-    <string name="repaso_desc">Genera preguntas a partir del texto de los PDF que has cargado.</string>
+    <string name="repaso_desc">Genera preguntas desde tus PDF y explora libros complementarios.</string>
     <string name="eliminar_titulo">Eliminar documento</string>
     <string name="eliminar_confirmar">¿Quieres eliminar «%1$s» de este dispositivo?</string>
+    <string name="openlibrary_titulo">Biblioteca abierta (Open Library)</string>
+    <string name="openlibrary_desc">Busca libros y recursos académicos complementarios. Open Library no es material oficial de ESFOCAR.</string>
+    <string name="openlibrary_campo_buscar">Buscar tema o título de libro</string>
+    <string name="openlibrary_btn_buscar">Buscar</string>
+    <string name="openlibrary_sugerencias">Búsquedas recomendadas:</string>
+    <string name="openlibrary_chip_derecho">Derecho</string>
+    <string name="openlibrary_chip_seguridad">Seguridad pública</string>
+    <string name="openlibrary_chip_criminologia">Criminología</string>
+    <string name="openlibrary_chip_constitucion">Constitución</string>
+    <string name="openlibrary_cargando">Consultando Open Library…</string>
+    <string name="openlibrary_error_buscar">No se pudo conectar a Open Library. Comprueba tu conexión a Internet.</string>
+    <string name="openlibrary_sin_resultados">No se encontraron libros para «%1$s».</string>
+    <string name="openlibrary_resultados_titulo">Resultados de búsqueda (%1$d)</string>
+    <string name="openlibrary_publicado">Publicado en %1$d</string>
+    <string name="openlibrary_ver_detalle">Ver ficha en Open Library</string>
 
     <!-- Inicio -->
     <string name="inicio_eyebrow_profesor">Panel docente</string>
@@ -172,6 +198,7 @@
     <string name="ver_resumen">Ver resumen</string>
     <string name="abrir_pdf">Abrir PDF</string>
     <string name="eliminar_documento_desc">Eliminar %1$s</string>
+    <string name="documento_compartido_por">Compartido por %1$s</string>
 
     <!-- Aula -->
     <string name="accion_compartir">Compartir</string>
@@ -208,6 +235,9 @@
     <string name="est_sin_tareas">No tienes tareas asignadas.</string>
     <string name="est_material">Material compartido</string>
     <string name="est_sin_material">Aún no te han compartido material.</string>
+    <string name="sesion_remota_no_disponible">No se pudo conectar con el aula compartida. Comprueba que el servidor esté activo y vuelve a intentarlo; tus archivos locales siguen disponibles.</string>
+    <string name="sesion_remota_requerida">Conéctate al servidor para usar el aula compartida.</string>
+    <string name="sesion_remota_reintentar">Conectar con el aula compartida</string>
 
     <!-- Configuración -->
     <string name="config_subtitulo">Personaliza la app a tu manera. Los cambios se aplican al instante.</string>
@@ -225,7 +255,7 @@
     <string name="idioma_sistema">Idioma del sistema</string>
     <string name="idioma_es" translatable="false">Español</string>
     <string name="idioma_en" translatable="false">English</string>
-    <string name="config_idioma_desc">También puedes cambiarlo en Ajustes de Android › Apps › AppCarab › Idioma. Los resúmenes y preguntas conservan el idioma de cada PDF.</string>
+    <string name="config_idioma_desc">El español es el idioma predeterminado. Puedes elegir inglés aquí o en Ajustes de Android › Apps › AppCarab › Idioma. Los PDF y sus preguntas conservan el idioma del documento.</string>
     <string name="config_accesibilidad">Accesibilidad</string>
     <string name="config_movimiento">Reducir animaciones</string>
     <string name="config_movimiento_desc">Detiene el carrusel de fotos de la pantalla de bienvenida.</string>

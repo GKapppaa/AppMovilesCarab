@@ -73,6 +73,7 @@ import com.example.appcarab.modelo.Documento
 import com.example.appcarab.ui.theme.Esfocar
 import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.EstadoTrivia
+import com.example.appcarab.vistaModelo.EstadoOpenLibrary
 
 private enum class SeccionMovil(
     @StringRes val titulo: Int,
@@ -105,6 +106,8 @@ internal fun InicioEstudiante(
     rol: String,
     estadoAula: EstadoAula,
     estadoTrivia: EstadoTrivia,
+    sesionRemotaError: String?,
+    onRetrySesionRemota: () -> Unit,
     onLoadTrivia: () -> Unit,
     onAnswerTrivia: (String) -> Unit,
     documentos: List<Documento>,
@@ -114,6 +117,7 @@ internal fun InicioEstudiante(
     onChoosePdf: () -> Unit,
     onScan: () -> Unit,
     onDeleteDocument: (Documento) -> Unit,
+    onUploadDocument: (Documento) -> Unit,
     onChangeCategory: (Int, String) -> Unit,
     onOpenDocument: (Documento) -> Unit,
     onAddStudent: (String) -> Unit,
@@ -123,6 +127,11 @@ internal fun InicioEstudiante(
     onEditProfile: () -> Unit,
     onSettings: () -> Unit,
     onLogout: () -> Unit,
+    estadoOpenLibrary: EstadoOpenLibrary = EstadoOpenLibrary(),
+    onQueryChangeOpenLibrary: (String) -> Unit = {},
+    onSearchOpenLibrary: (String) -> Unit = {},
+    onEnterRepaso: () -> Unit = {},
+    onOpenOpenLibraryLink: (String) -> Unit = {},
 ) {
     var seccionGuardada by rememberSaveable { mutableStateOf(SeccionMovil.INICIO.name) }
     var documentoAEliminar by remember { mutableStateOf<Documento?>(null) }
@@ -152,7 +161,10 @@ internal fun InicioEstudiante(
                 SeccionMovil.entries.forEach { destino ->
                     NavigationBarItem(
                         selected = seccion == destino,
-                        onClick = { seccionGuardada = destino.name },
+                        onClick = {
+                            if (destino == SeccionMovil.REPASO) onEnterRepaso()
+                            seccionGuardada = destino.name
+                        },
                         icon = { Icon(destino.icono, contentDescription = null) },
                         label = { Text(stringResource(destino.titulo), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         colors = NavigationBarItemDefaults.colors(
@@ -182,6 +194,15 @@ internal fun InicioEstudiante(
                     .padding(top = 20.dp, bottom = 28.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp),
             ) {
+                if (sesionRemotaError != null) {
+                    InlineMessage(sesionRemotaError, isError = true)
+                    OutlinedButton(
+                        onClick = onRetrySesionRemota,
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                    ) {
+                        Text(stringResource(R.string.sesion_remota_reintentar))
+                    }
+                }
                 when (seccion) {
                     SeccionMovil.INICIO -> PanelInicio(
                         nombre = nombre,
@@ -235,6 +256,7 @@ internal fun InicioEstudiante(
                             documentos.forEach { documento ->
                                 DocumentoCard(
                                     documento = documento,
+                                    codigoPerfil = codigoPerfil,
                                     resumenExpandido = resumenExpandidoId == documento.id,
                                     alExpandir = {
                                         resumenExpandidoId = if (resumenExpandidoId == documento.id) null else documento.id
@@ -242,6 +264,7 @@ internal fun InicioEstudiante(
                                     alCambiarCategoria = { onChangeCategory(documento.id, it) },
                                     alAbrir = { onOpenDocument(documento) },
                                     alEliminar = { documentoAEliminar = documento },
+                                    alSubir = { onUploadDocument(documento) },
                                 )
                             }
                         }
@@ -254,6 +277,12 @@ internal fun InicioEstudiante(
                             descripcion = stringResource(R.string.repaso_desc),
                         )
                         TriviaPanel(estadoTrivia, onLoadTrivia, onAnswerTrivia)
+                        OpenLibraryPanel(
+                            estado = estadoOpenLibrary,
+                            onQueryChange = onQueryChangeOpenLibrary,
+                            onSearch = onSearchOpenLibrary,
+                            onOpenLink = onOpenOpenLibraryLink,
+                        )
                     }
                 }
             }
@@ -608,11 +637,13 @@ private fun AccionesMaterial(
 @Composable
 private fun DocumentoCard(
     documento: Documento,
+    codigoPerfil: String,
     resumenExpandido: Boolean,
     alExpandir: () -> Unit,
     alCambiarCategoria: (String) -> Unit,
     alAbrir: () -> Unit,
     alEliminar: () -> Unit,
+    alSubir: () -> Unit,
 ) {
     var menuCategoriaAbierto by remember(documento.id) { mutableStateOf(false) }
     TarjetaBase {
@@ -624,6 +655,13 @@ private fun DocumentoCard(
                 IconoEnCaja(Icons.Outlined.PictureAsPdf)
                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                     Text(documento.nombre, style = MaterialTheme.typography.titleSmall)
+                    if (documento.propietarioRemoto != null && documento.propietarioRemoto != codigoPerfil) {
+                        Text(
+                            stringResource(R.string.documento_compartido_por, documento.propietarioRemoto),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                     Box {
                         TextButton(
                             onClick = { menuCategoriaAbierto = true },
@@ -685,12 +723,25 @@ private fun DocumentoCard(
                 ) {
                     Text(stringResource(R.string.abrir_pdf), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
-                IconButton(onClick = alEliminar, modifier = Modifier.size(48.dp)) {
-                    Icon(
-                        Icons.Outlined.DeleteOutline,
-                        contentDescription = stringResource(R.string.eliminar_documento_desc, documento.nombre),
-                        tint = MaterialTheme.colorScheme.error,
-                    )
+                if (documento.propietarioRemoto == null || documento.propietarioRemoto == codigoPerfil) {
+                    IconButton(onClick = alEliminar, modifier = Modifier.size(48.dp)) {
+                        Icon(
+                            Icons.Outlined.DeleteOutline,
+                            contentDescription = stringResource(R.string.eliminar_documento_desc, documento.nombre),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+            if (documento.idRemoto == null &&
+                (documento.propietarioRemoto == null || documento.propietarioRemoto == codigoPerfil)
+            ) {
+                OutlinedButton(
+                    onClick = alSubir,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Text(stringResource(R.string.doc_subir_para_compartir))
                 }
             }
         }

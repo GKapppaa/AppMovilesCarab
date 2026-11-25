@@ -68,6 +68,15 @@
     <string name="doc_error_eliminar">Couldn\'t delete the document.</string>
     <string name="doc_error_camara">The camera didn\'t return a readable image.</string>
     <string name="doc_error_abrir_archivo">Couldn\'t open the selected file.</string>
+    <string name="doc_agregado_remoto">PDF saved and ready to share with your classroom.</string>
+    <string name="doc_subir_para_compartir">Upload to classroom to share</string>
+    <string name="doc_agregado_local">PDF saved on this device. Sign in while connected to share it.</string>
+    <string name="doc_escaneo_local">Scan saved locally. Sign in while connected to share it.</string>
+    <string name="doc_error_demasiado_grande">The shared PDF exceeds the allowed size.</string>
+    <string name="doc_error_pdf_invalido">The received file is not a valid PDF.</string>
+    <string name="doc_pdf_sin_texto">Shared document. No selectable text was detected.</string>
+    <string name="doc_error_compartidos">Could not refresh shared material from the server.</string>
+    <string name="doc_error_sesion_propietario">The server session does not match the document owner.</string>
     <string name="archivo_no_encontrado">The saved file couldn\'t be found.</string>
     <string name="abrir_pdf_selector">Open PDF</string>
     <string name="sin_app_pdf">No app is available to open PDFs.</string>
@@ -87,6 +96,8 @@
     <string name="aula_descripcion_larga">The description must be between 5 and 1000 characters.</string>
     <string name="aula_mensaje_enviado">Message sent.</string>
     <string name="aula_material_compartido">Material shared.</string>
+    <string name="aula_pdf_debe_subirse">This PDF is only on this device. Upload it while connected before sharing.</string>
+    <string name="aula_pdf_pendiente">Upload first</string>
     <string name="aula_tarea_asignada">Assignment created.</string>
     <string name="sync_remoto">Synced with the remote service.</string>
     <string name="sync_pendiente">Saved locally; it will sync when the connection is back.</string>
@@ -125,9 +136,24 @@
     <string name="material_vacio_desc">Upload a PDF to start your study library.</string>
     <string name="material_mis_documentos">My documents · %1$d</string>
     <string name="repaso_titulo">Review your content</string>
-    <string name="repaso_desc">Generate questions from the text in the PDFs you uploaded.</string>
+    <string name="repaso_desc">Generate questions from your PDFs and explore complementary books.</string>
     <string name="eliminar_titulo">Delete document</string>
     <string name="eliminar_confirmar">Delete “%1$s” from this device?</string>
+    <string name="openlibrary_titulo">Open Library</string>
+    <string name="openlibrary_desc">Search complementary academic books and resources. Open Library is not official ESFOCAR material.</string>
+    <string name="openlibrary_campo_buscar">Search a topic or book title</string>
+    <string name="openlibrary_btn_buscar">Search</string>
+    <string name="openlibrary_sugerencias">Suggested searches:</string>
+    <string name="openlibrary_chip_derecho">Law</string>
+    <string name="openlibrary_chip_seguridad">Public safety</string>
+    <string name="openlibrary_chip_criminologia">Criminology</string>
+    <string name="openlibrary_chip_constitucion">Constitution</string>
+    <string name="openlibrary_cargando">Searching Open Library…</string>
+    <string name="openlibrary_error_buscar">Could not connect to Open Library. Check your internet connection.</string>
+    <string name="openlibrary_sin_resultados">No books found for “%1$s”.</string>
+    <string name="openlibrary_resultados_titulo">Search results (%1$d)</string>
+    <string name="openlibrary_publicado">Published in %1$d</string>
+    <string name="openlibrary_ver_detalle">Open on Open Library</string>
 
     <!-- Home -->
     <string name="inicio_eyebrow_profesor">Teacher dashboard</string>
@@ -170,6 +196,7 @@
     <string name="ver_resumen">Show summary</string>
     <string name="abrir_pdf">Open PDF</string>
     <string name="eliminar_documento_desc">Delete %1$s</string>
+    <string name="documento_compartido_por">Shared by %1$s</string>
 
     <!-- Classroom -->
     <string name="accion_compartir">Share</string>
@@ -206,6 +233,9 @@
     <string name="est_sin_tareas">You have no assignments.</string>
     <string name="est_material">Shared material</string>
     <string name="est_sin_material">No material has been shared with you yet.</string>
+    <string name="sesion_remota_no_disponible">Could not connect to the shared classroom. Check that the server is running and retry; local files are still available.</string>
+    <string name="sesion_remota_requerida">Connect to the server to use the shared classroom.</string>
+    <string name="sesion_remota_reintentar">Connect to the shared classroom</string>
 
     <!-- Settings -->
     <string name="config_subtitulo">Make the app your own. Changes apply instantly.</string>
@@ -221,7 +251,7 @@
     <string name="config_texto_vista_previa">This is how text will look in the app.</string>
     <string name="config_idioma">Language</string>
     <string name="idioma_sistema">System language</string>
-    <string name="config_idioma_desc">You can also change it in Android Settings › Apps › AppCarab › Language. Summaries and questions keep the language of each PDF.</string>
+    <string name="config_idioma_desc">Spanish is the default language. You can choose English here or in Android Settings › Apps › AppCarab › Language. PDFs and their questions keep the document language.</string>
     <string name="config_accesibilidad">Accessibility</string>
     <string name="config_movimiento">Reduce animations</string>
     <string name="config_movimiento_desc">Stops the photo carousel on the welcome screen.</string>

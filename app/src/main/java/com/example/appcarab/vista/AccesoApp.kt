@@ -32,6 +32,8 @@ import com.example.appcarab.vistaModelo.PantallaAcceso
 import com.example.appcarab.vistaModelo.AulaVistaModelo
 import com.example.appcarab.vistaModelo.EstadoAula
 import com.example.appcarab.vistaModelo.TriviaVistaModelo
+import com.example.appcarab.vistaModelo.SesionRemotaVistaModelo
+import com.example.appcarab.vistaModelo.OpenLibraryVistaModelo
 
 @Composable
 fun AccesoApp(
@@ -39,6 +41,8 @@ fun AccesoApp(
     documentosViewModel: DocumentosVistaModelo,
     aulaViewModel: AulaVistaModelo,
     triviaViewModel: TriviaVistaModelo,
+    sesionRemotaViewModel: SesionRemotaVistaModelo,
+    openLibraryViewModel: OpenLibraryVistaModelo,
     preferencias: PreferenciasApp,
     temaOscuro: Boolean,
     preferenciasRepository: PreferenciasRepository,
@@ -47,6 +51,8 @@ fun AccesoApp(
     val estadoDocumentos by documentosViewModel.estado.collectAsState()
     val estadoAula by aulaViewModel.estado.collectAsState()
     val estadoTrivia by triviaViewModel.estado.collectAsState()
+    val estadoSesionRemota by sesionRemotaViewModel.estado.collectAsState()
+    val estadoOpenLibrary by openLibraryViewModel.estado.collectAsState()
     val context = LocalContext.current
     var uriEscaneo by rememberSaveable { mutableStateOf<String?>(null) }
     var configuracionAbierta by rememberSaveable { mutableStateOf(false) }
@@ -70,18 +76,34 @@ fun AccesoApp(
 
     val pdfPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         val usuarioId = estado.usuarioId
-        if (uri != null && usuarioId != null) documentosViewModel.agregar(usuarioId, uri)
+        if (uri != null && usuarioId != null) {
+            documentosViewModel.agregar(usuarioId, estado.codigoPerfil, estadoSesionRemota.token, uri)
+        }
     }
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { guardado ->
         val uri = uriEscaneo?.let(Uri::parse)
         val usuarioId = estado.usuarioId
-        if (guardado && uri != null && usuarioId != null) documentosViewModel.agregarEscaneo(usuarioId, uri)
+        if (guardado && uri != null && usuarioId != null) {
+            documentosViewModel.agregarEscaneo(
+                usuarioId,
+                estado.codigoPerfil,
+                estadoSesionRemota.token,
+                uri,
+            )
+        }
     }
-    LaunchedEffect(estado.usuarioId) { estado.usuarioId?.let(documentosViewModel::observar) }
-    LaunchedEffect(estado.usuarioId, estado.rolUsuario) {
-        estado.usuarioId?.let { aulaViewModel.observar(it, estado.rolUsuario) }
+    LaunchedEffect(estado.usuarioId, estado.codigoPerfil, estadoSesionRemota.token) {
+        val usuarioId = estado.usuarioId
+        if (usuarioId != null) {
+            documentosViewModel.observar(usuarioId, estado.codigoPerfil, estadoSesionRemota.token)
+            aulaViewModel.observar(usuarioId, estado.rolUsuario, estadoSesionRemota.token)
+        }
     }
-
+    LaunchedEffect(estado.usuarioId, estado.codigoPerfil, estado.rolUsuario) {
+        if (estado.usuarioId != null && estado.codigoPerfil.isNotBlank()) {
+            sesionRemotaViewModel.abrir(estado.codigoPerfil, estado.rolUsuario)
+        }
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         if (configuracionAbierta) {
             PantallaConfiguracion(
@@ -133,6 +155,10 @@ fun AccesoApp(
                 rol = estado.rolUsuario,
                 estadoAula = estadoAula,
                 estadoTrivia = estadoTrivia,
+                sesionRemotaError = estadoSesionRemota.error,
+                onRetrySesionRemota = {
+                    sesionRemotaViewModel.abrir(estado.codigoPerfil, estado.rolUsuario, reintentar = true)
+                },
                 onLoadTrivia = { triviaViewModel.cargarPregunta(estado.usuarioId) },
                 onAnswerTrivia = triviaViewModel::responder,
                 documentos = estadoDocumentos.documentos,
@@ -148,7 +174,12 @@ fun AccesoApp(
                         }
                     }
                 },
-                onDeleteDocument = documentosViewModel::eliminar,
+                onDeleteDocument = { documento ->
+                    documentosViewModel.eliminar(documento, estado.codigoPerfil, estadoSesionRemota.token)
+                },
+                onUploadDocument = { documento ->
+                    documentosViewModel.subirAlServidor(documento, estado.codigoPerfil, estadoSesionRemota.token)
+                },
                 onChangeCategory = documentosViewModel::cambiarCategoria,
                 onOpenDocument = { documento ->
                     val uri = documentosViewModel.uriParaAbrir(documento)
@@ -163,13 +194,38 @@ fun AccesoApp(
                             .onFailure { Toast.makeText(context, textoSinAppPdf, Toast.LENGTH_LONG).show() }
                     }
                 },
-                onAddStudent = { codigo -> estado.usuarioId?.let { aulaViewModel.agregarAlumno(it, codigo) } },
+                onAddStudent = { codigo ->
+                    estado.usuarioId?.let {
+                        aulaViewModel.agregarAlumno(it, codigo, estadoSesionRemota.token)
+                    }
+                },
                 onSendMessage = { codigo, texto -> estado.usuarioId?.let { aulaViewModel.enviarMensaje(it, codigo, texto) } },
-                onShareMaterial = { codigo, documentoId -> estado.usuarioId?.let { aulaViewModel.compartirMaterial(it, codigo, documentoId) } },
+                onShareMaterial = { codigo, documentoId ->
+                    estado.usuarioId?.let {
+                        aulaViewModel.compartirMaterial(it, codigo, documentoId, estadoSesionRemota.token)
+                    }
+                },
                 onAssignTask = { codigo, titulo, descripcion -> estado.usuarioId?.let { aulaViewModel.asignarTarea(it, codigo, titulo, descripcion) } },
                 onEditProfile = { viewModel.irA(PantallaAcceso.EDITAR_PERFIL) },
                 onSettings = { configuracionAbierta = true },
-                onLogout = viewModel::cerrarSesion,
+                onLogout = {
+                    sesionRemotaViewModel.cerrar()
+                    viewModel.cerrarSesion()
+                },
+                estadoOpenLibrary = estadoOpenLibrary,
+                onQueryChangeOpenLibrary = openLibraryViewModel::cambiarQuery,
+                onSearchOpenLibrary = { openLibraryViewModel.buscar(it) },
+                onEnterRepaso = {
+                    if (!estadoOpenLibrary.busquedaRealizada && !estadoOpenLibrary.cargando) {
+                        openLibraryViewModel.buscar()
+                    }
+                },
+                onOpenOpenLibraryLink = { url ->
+                    val uri = Uri.parse(url)
+                    if (uri.scheme == "https" && uri.host == "openlibrary.org") {
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+                    }
+                },
             )
         }
     }

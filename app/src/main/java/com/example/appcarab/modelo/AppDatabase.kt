@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // Define las entidades y la versión de la base de datos.
 @Database(
     entities = [Usuario::class, Documento::class, AlumnoProfesor::class, MensajeDocente::class, MaterialCompartido::class, TareaDocente::class, PendienteSincronizacion::class],
-    version = 10
+    version = 11
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -32,7 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "app_database" // Nombre del archivo de la base de datos en el teléfono
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10).build()
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11).build()
                 INSTANCE = instance
                 instance
             }
@@ -128,6 +128,14 @@ abstract class AppDatabase : RoomDatabase() {
         private val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE documento ADD COLUMN textoExtraido TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE documento ADD COLUMN idRemoto TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE documento ADD COLUMN propietarioRemoto TEXT DEFAULT NULL")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS index_documento_idRemoto ON documento(idRemoto)")
             }
         }
     }
