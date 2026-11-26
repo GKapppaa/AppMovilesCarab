@@ -141,6 +141,23 @@ curl -X POST http://localhost:8081/api/v1/secciones \
 
 `clave` es única por tipo y tiene un máximo de 120 caracteres. Los errores principales son `400` para tipo/cuerpo inválido, `404` para registro inexistente y `409` para una clave ya creada.
 
+### Desplegar el backend en Railway
+
+El repositorio incluye un `Dockerfile` y configuración de Railway para compilar y ejecutar únicamente el backend. Para conservar la base H2 y los PDF entre despliegues:
+
+1. Crea un proyecto Railway desde este repositorio y despliega desde la raíz.
+2. En el servicio, agrega un **Volume** con mount path `/data`.
+3. Define la variable `SPRING_PROFILES_ACTIVE=railway`.
+4. Genera un dominio público y confirma que `/api/v1/health` responda correctamente.
+
+El perfil `railway` guarda H2 en `/data/esfocar`, los PDF en `/data/documentos` y deshabilita la consola H2. Railway entrega el puerto mediante `PORT`. Al compilar la app Android para usar ese backend, especifica la URL generada:
+
+```bash
+./gradlew assembleDebug -PapiBaseUrl=https://<dominio-railway>/api/v1/
+```
+
+Este proyecto es un MVP académico: usa sesiones de demo, no autenticación de producción. No publiques datos reales ni documentos confidenciales.
+
 ### Sesión de demo y PDF del usuario
 
 Tras login local, la app abre `POST /api/v1/sesiones` con el código/rol del perfil que ya se sincronizó. El backend devuelve un bearer opaco con caducidad de 12 horas; se envía en `Authorization: Bearer <token>`. Los tokens viven en memoria: reiniciar Spring Boot los invalida y el usuario debe iniciar sesión de nuevo. Si el perfil estaba pendiente de sincronización porque el backend no estaba disponible, se puede reintentar la conexión desde la app.
@@ -313,6 +330,8 @@ La pauta advierte que cambios al repositorio después de la fecha límite pueden
 
 ## Equipo
 
+- Daniel Pinto
+- Hernán García
 - Gustavo Oporto
 
 ## Créditos de fotografías de bienvenida
